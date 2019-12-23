@@ -1,23 +1,24 @@
 <template>
   <el-card shadow="hover">
-    <el-table :data="files" style="width: 100%">
+    <el-table :data="files" style="width: 100%" :header-cell-style="{'text-align':'center'}"
+              :cell-style="{'text-align':'center'}">
       <el-table-column>
         <template slot="header" slot-scope="scope">
           Movie
         </template>
-        <imgInTableCell slot-scope="scope" :row="scope.row" module="" />
+        <imgInTableCell slot-scope="scope" :row="scope.row" module=""/>
       </el-table-column>
       <el-table-column>
         <template slot="header" slot-scope="scope">
-          Motion-corr R
+          <el-button @click="openConfForm('MotionCor')">Motion-corr R</el-button>
         </template>
-        <imgInTableCell slot-scope="scope" :row="scope.row" module="/MotionCor2" />
+        <imgInTableCell slot-scope="scope" :row="scope.row" module="/MotionCor2"/>
       </el-table-column>
       <el-table-column>
         <template slot="header" slot-scope="scope">
-          CTF R
+          <el-button @click="openConfForm('CTF')">CTF R</el-button>
         </template>
-        <imgInTableCell slot-scope="scope" :row="scope.row" module="/Gctf" />
+        <imgInTableCell slot-scope="scope" :row="scope.row" module="/Gctf"/>
       </el-table-column>
       <el-table-column>
         <template slot="header" slot-scope="scope">
@@ -26,12 +27,13 @@
         <template slot-scope="scope">
           <el-tag
               :type="scope.row[''] === undefined || scope.row[''][0]['mark']==='good' ? 'success' : 'info'"
-              disable-transitions>{{scope.row[''][0]['mark']}}</el-tag>
+              disable-transitions>{{scope.row[''][0]['mark']}}
+          </el-tag>
         </template>
       </el-table-column>
       <el-table-column>
         <template slot="header" slot-scope="scope">
-          Pick
+          <el-button @click="openConfForm('Pick')">Pick</el-button>
         </template>
         <el-tag type="primary" disable-transitions>1000</el-tag>
       </el-table-column>
@@ -39,7 +41,7 @@
         <template slot="header" slot-scope="scope">
           Extract R
         </template>
-        <img />
+        <img/>
       </el-table-column>
     </el-table>
     <div class="tool-box">
@@ -47,61 +49,62 @@
       <el-button type="danger" size="small">RUN ALL</el-button>
       <el-button type="success" size="small">SAVE</el-button>
     </div>
+    <el-dialog title="参数设置" :visible.sync="dialogVisible" width="80%">
+      <confView :forms="forms[step]" :module.sync="forms['_current'][step]"/>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="setConfig">确 定</el-button>
+      </span>
+    </el-dialog>
   </el-card>
 </template>
 
 <script>
   import projectAPI from '../api/project';
   import imgInTableCell from '../components/overview/imgInTableCell';
+  import confView from "../components/overview/confView";
 
   export default {
     name: "Overview",
-    components:{
-      imgInTableCell
+    components: {
+      imgInTableCell,
+      confView
     },
     data() {
       return {
-        files:[],
-        tableData: [{
-          date: '2016-05-02',
-          name: '王小虎',
-          address: '/homt/test/May08_03.05.02.bin.mrc'
-        }, {
-          date: '2016-05-04',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1517 弄'
-        }, {
-          date: '2016-05-01',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1519 弄'
-        }, {
-          date: '2016-05-03',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1516 弄'
-        }]
+        files: [],
+        dialogVisible: false,
+        forms:JSON.parse(JSON.stringify(this.$store.getters.getConfig)),
+        step:''
       }
     },
-    computed:{
-      dir(){
+    computed: {
+      dir() {
         return this.$store.getters.getProject.directory;
       }
     },
-    methods:{
-      handleEdit(a, b,c){
-        console.log(a,b,c);
+    methods: {
+      openConfForm(step) {
+        this.step=step;
+        this.dialogVisible=true;
+      },
+      setConfig(){
+        this.dialogVisible = false;
+        console.log(this.forms);
       }
     },
-    mounted(){
-      projectAPI.getFiles(this.dir,'mrc').then(res=>{
-        this.files.splice(0,this.files.length);
-        res.data.forEach((item,index,array)=>{this.files.push(item)});
+    mounted() {
+      projectAPI.getFiles(this.dir, 'mrc').then(res => {
+        this.files.splice(0, this.files.length);
+        res.data.forEach((item, index, array) => {
+          this.files.push(item)
+        });
       });
     }
   }
 </script>
 
 <style scoped>
-  .tool-box{
+  .tool-box {
     float: right;
     margin: 10px;
   }

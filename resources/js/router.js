@@ -26,6 +26,7 @@ const routes = [
   },
   {
     path: '/',
+    redirect:'/overview',
     components: require('./pages/Layout.vue'),
     beforeEnter:requireProject,
     children: [

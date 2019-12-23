@@ -53,16 +53,26 @@
         this.configImage.image.src = val;
         this.configImage.width = this.configImage.image.width;
         this.configImage.height = this.configImage.image.height;
+        this.$refs.stage.getStage().draw();
       }
     },
     methods:{
       zoom(e){
         e.evt.stopPropagation();
         e.evt.preventDefault();
+        var rawZoomVal=this.zoomVal;
         this.zoomVal+= e.evt.wheelDeltaY<0?0.1:-0.1;
-        this.$refs.stage.getStage().scale({
-          x:this.zoomVal,y:this.zoomVal
-        }).draw();
+        if(this.zoomVal < 0.2){
+          this.zoomVal = 0.1;
+        }else if(this.zoomVal > 5.0){
+          this.zoomVal=5.0;
+        }
+        var stage=this.$refs.stage.getStage();
+        var position = stage.absolutePosition();
+        var x=this.zoomVal/rawZoomVal*(position.x-e.evt.layerX)+e.evt.layerX;
+        var y=this.zoomVal/rawZoomVal*(position.y-e.evt.layerY)+e.evt.layerY;
+        stage.absolutePosition({x:x,y:y})
+          .scale({x:this.zoomVal,y:this.zoomVal}).draw();
       },
       contextmenu(e){
         e.evt.preventDefault();

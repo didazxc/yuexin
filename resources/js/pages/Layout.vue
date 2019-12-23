@@ -57,6 +57,9 @@
             break;
         }
       }
+    },
+    mounted() {
+      this.menuKey=this.$route.path;
     }
   }
 </script>

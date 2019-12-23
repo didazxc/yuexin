@@ -23,6 +23,19 @@ export default new Vuex.Store({
     users:{},
     //项目信息
     project:localStorage.project?JSON.parse(localStorage.project):{},
+    //配置信息
+    config:{
+      '_current':{'MotionCor':'MotionCor2','CTF':'Gctf','Pick':'Non-AI:Gautomatch'},
+      'MotionCor':{'MotionCor2':[{name:'a',type:'int',value:'1'}],'Unblur':[{name:'b',type:'double',value:'1.0'}]},
+      'CTF':{'Gctf':[{name:'a',type:'int',value:'1'}],'CTFFIND':[{name:'a',type:'int',value:'1'}]},
+      'Pick':{
+        'Non-AI:Gautomatch':[{name:'a',type:'int',value:'1'}],
+        'Non-AI:RELION':[{name:'a',type:'int',value:'1'}],
+        'AI:EMAN':[{name:'a',type:'int',value:'1'}],
+        'AI:crYOLO':[{name:'a',type:'int',value:'1'}],
+        'AI:Topaz':[{name:'a',type:'int',value:'1'}]
+      },
+    }
   },
   getters: {
     getUserLoadStatus(state) {
@@ -39,6 +52,9 @@ export default new Vuex.Store({
     },
     getProject(state){
       return state.project;
+    },
+    getConfig(state){
+      return state.config;
     }
   },
   mutations: {
