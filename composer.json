@@ -15,7 +15,8 @@
         "laravel/tinker": "^2.0",
         "spatie/laravel-permission": "^3.3",
         "summerblue/administrator": "^6.0",
-        "ext-gd": "*"
+        "ext-gd": "*",
+        "symfony/translation-contracts": "^1.1.6"
     },
     "require-dev": {
         "facade/ignition": "^1.4",
