@@ -28,6 +28,7 @@ class CreateYuexinTable extends Migration
         if(!$user){
             User::create(['name'=>'admin','email'=>'admin@admin.com','password'=>'administrator']);
         }
+        //初始化passport
     }
 
     /**
