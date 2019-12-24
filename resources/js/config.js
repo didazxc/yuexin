@@ -1,10 +1,10 @@
 var root_url = '';
 switch( process.env.NODE_ENV ){
   case 'development':
-    root_url = 'http://localhost:8000';
+    root_url = '';
     break;
   case 'production':
-    root_url = 'http://www.production.com';
+    root_url = '';
     break;
 }
 
