@@ -1,7 +1,7 @@
 <template>
   <el-container direction='vertical'>
     <el-container>
-      <Aside :collapse.sync="isAsideCollapse" :menus="menus" :default-active="menuKey" @select="changeMenu"/>
+      <Aside :collapse.sync="isAsideCollapse" :menus="menus" :default-active="menuKey"/>
       <el-container id="content" direction='vertical'>
         <Header :isAsideCollapse.sync="isAsideCollapse" :title="title">
           <el-dropdown :hide-on-click="false" @command="handleCommand">
@@ -29,7 +29,8 @@
     },
     data() {
       return {
-        menuKey: "/overview",
+        menuKey:'/overview',
+        title:'',
         isAsideCollapse: false,
       }
     },
@@ -42,24 +43,27 @@
         if(user!==null) return user.name;
         else return 'noLogin';
       },
-      title() {
-        return this.menus[this.menuKey].title;
-      }
     },
     methods: {
-      changeMenu(key) {
-        this.menuKey = key;
-      },
       handleCommand(cmd){
         switch(cmd){
           case 'logout':
             this.$store.dispatch('logout');
             break;
         }
+      },
+      setMenuKey(value){
+        this.menuKey=value;
+        this.title=this.menus[value].title;
       }
     },
-    mounted() {
-      this.menuKey=this.$route.path;
+    watch:{
+      '$route.path':function(newVal,oldVal){
+        this.setMenuKey(newVal);
+      }
+    },
+    mounted(){
+      this.setMenuKey(this.$route.path);
     }
   }
 </script>

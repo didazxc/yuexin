@@ -15,7 +15,7 @@
         text-color="#2c3e50"
         active-text-color="#42b983">
 
-        <el-menu-item v-for="(v,k) in menus" :key="k" :index="k">
+        <el-menu-item v-for="(v,k) in menus" v-if="v.index!==undefined" :key="k" :index="k">
           <i class="fa" :class="[v.fa]"/>
           <span slot="title">{{v.title}}</span>
         </el-menu-item>
@@ -107,7 +107,7 @@
     min-height: 400px;
   }
   .el-menu-item.is-active{
-    color: '#42b983' !important;
+    color: #42b983 !important;
     background-color: rgba(66,185,131,0.05);
   }
   .el-menu-item:hover,.el-submenu__title:hover{

@@ -10,8 +10,9 @@ export default new Vuex.Store({
     userLoadStatus: 2,//2已登陆，1登陆中，0未登陆，3登陆异常
     //基本用户信息
     user:null,
-    //菜单
+    //菜单配置
     menus:{
+      "/set_project":{title:"项目选择"},
       "/overview":{index:"/overview",title:"总览",fa:"fa-dashboard"},
       "/preprocess":{index:"/preprocess",title:"预处理",fa:"fa-flash"},
       "/pick":{index:"/pick",title:"颗粒挑选",fa:"fa-eyedropper"},

@@ -1,13 +1,13 @@
 <template>
   <div>
-    <el-image :src="row[module]===undefined?'':row[module][0]['src']"
+    <el-image :src="src"
               style="width: 100px; height: 100px" fit="fill"
-              :preview-src-list="[row[module][0]['src']]">
+              :preview-src-list="[src]">
       <div slot="placeholder" class="image-slot">
         加载中<span class="dot">...</span>
       </div>
     </el-image>
-    <div>{{row[module][0]['name']}}</div>
+    <div>{{name}}</div>
   </div>
 </template>
 
@@ -17,14 +17,25 @@
   export default {
     name: "imgInTableCell",
     props:{row:{type:Object},module:{type:String}},
-    mounted(){
-      var path = this.row[this.module][0].path;
-      if(this.module==="/Gctf"){
-        path=path.substring(0,path.lastIndexOf('.'))+".ctf";
+    data(){
+      return {
+        src:"undefined",
+        name:''
       }
-      projectAPI.getMrc(path).then(r=>{
-        this.row[this.module][0].src=r.data;
-      });
+    },
+    mounted() {
+      if (this.row[this.module] !== undefined) {
+        var f = this.row[this.module][0];
+        var path = f.path;
+        if (this.module === "Gctf") {
+          path = path.substring(0, path.lastIndexOf('.')) + ".ctf";
+        }
+        projectAPI.getMrc(path).then(r => {
+          this.src = r.data;
+          //this.row[this.module][0].src = this.src;
+        });
+        this.name = f.name;
+      }
     }
   }
 </script>

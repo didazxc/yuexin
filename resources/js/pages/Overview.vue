@@ -3,45 +3,45 @@
     <el-table :data="files" style="width: 100%" :header-cell-style="{'text-align':'center'}"
               :cell-style="{'text-align':'center'}">
       <el-table-column>
-        <template slot="header" slot-scope="scope">
+        <template slot="header">
           Movie
         </template>
         <imgInTableCell slot-scope="scope" :row="scope.row" module=""/>
       </el-table-column>
       <el-table-column>
-        <template slot="header" slot-scope="scope">
+        <template slot="header">
           <el-button @click="openConfForm('MotionCor')">Motion-corr R</el-button>
         </template>
-        <imgInTableCell slot-scope="scope" :row="scope.row" module="/MotionCor2"/>
+        <imgInTableCell slot-scope="scope" :row="scope.row" module="MotionCor2"/>
       </el-table-column>
       <el-table-column>
-        <template slot="header" slot-scope="scope">
+        <template slot="header">
           <el-button @click="openConfForm('CTF')">CTF R</el-button>
         </template>
-        <imgInTableCell slot-scope="scope" :row="scope.row" module="/Gctf"/>
+        <imgInTableCell slot-scope="scope" :row="scope.row" module="Gctf"/>
       </el-table-column>
       <el-table-column>
-        <template slot="header" slot-scope="scope">
+        <template slot="header">
           Mark
         </template>
         <template slot-scope="scope">
           <el-tag
-              :type="scope.row[''] === undefined || scope.row[''][0]['mark']==='good' ? 'success' : 'info'"
-              disable-transitions>{{scope.row[''][0]['mark']}}
+              :type="scope.row['Movies'] === undefined || scope.row['Movies'][0]['mark']==='good' ? 'success' : 'info'"
+              disable-transitions>{{scope.row['Movies'][0]['mark']}}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column>
-        <template slot="header" slot-scope="scope">
+        <template slot="header">
           <el-button @click="openConfForm('Pick')">Pick</el-button>
         </template>
         <el-tag type="primary" disable-transitions>1000</el-tag>
       </el-table-column>
       <el-table-column>
-        <template slot="header" slot-scope="scope">
+        <template slot="header">
           Extract R
         </template>
-        <img/>
+        <img alt="加载失败"/>
       </el-table-column>
     </el-table>
     <div class="tool-box">

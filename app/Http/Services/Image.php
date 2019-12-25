@@ -69,7 +69,8 @@ class Image
             ->filter(function($path)use($extensions){
                 $extension=pathinfo($path,PATHINFO_EXTENSION);
                 return in_array($extension,$extensions);
-            })->map(function($path)use($dir){
+            })
+            ->map(function($path)use($dir){
                 $path='/'.$path;
                 //ext
                 $ext=pathinfo($path,PATHINFO_EXTENSION);
@@ -80,14 +81,22 @@ class Image
                 //module
                 $path_dir=pathinfo($path,PATHINFO_DIRNAME);
                 $module=substr($path_dir,strlen($dir));
+                $module=strlen($module)>0?substr($module,1):"";
                 //src
                 $src='';
                 //mark
                 $mark='good';
                 return compact('path','file_name','name','module','ext','src','mark');
-            })->filter(function($item){
+            })
+            ->filter(function($item){
                 return !in_array('.task',explode('/',$item['module']));
-            })->groupBy('name')->map(function($item){return $item->groupBy('module');})->values();
+            })
+            ->groupBy('name')
+            ->map(function($item){return $item->groupBy('module');})
+            ->filter(function($item){
+                return $item->has('Movies');
+            })
+            ->values();
         return $files;
     }
 
