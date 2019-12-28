@@ -6,19 +6,19 @@
         <template slot="header">
           Movie
         </template>
-        <imgInTableCell slot-scope="scope" :row="scope.row" module=""/>
+        <imgInTableCell slot-scope="scope" :row="scope.row" module="Movies"/>
       </el-table-column>
       <el-table-column>
         <template slot="header">
           <el-button @click="openConfForm('MotionCor')">Motion-corr R</el-button>
         </template>
-        <imgInTableCell slot-scope="scope" :row="scope.row" module="MotionCor2"/>
+        <imgInTableCell slot-scope="scope" :row="scope.row" module="MotionCor"/>
       </el-table-column>
       <el-table-column>
         <template slot="header">
           <el-button @click="openConfForm('CTF')">CTF R</el-button>
         </template>
-        <imgInTableCell slot-scope="scope" :row="scope.row" module="Gctf"/>
+        <imgInTableCell slot-scope="scope" :row="scope.row" module="CTF"/>
       </el-table-column>
       <el-table-column>
         <template slot="header">
@@ -26,8 +26,8 @@
         </template>
         <template slot-scope="scope">
           <el-tag
-              :type="scope.row['Movies'] === undefined || scope.row['Movies'][0]['mark']==='good' ? 'success' : 'info'"
-              disable-transitions>{{scope.row['Movies'][0]['mark']}}
+              :type="scope.row['Mark']==='good' ? 'success' : 'info'"
+              disable-transitions>{{scope.row['Mark']}}
           </el-tag>
         </template>
       </el-table-column>
@@ -41,7 +41,7 @@
         <template slot="header">
           Extract R
         </template>
-        <img alt="加载失败"/>
+        <imgInTableCell slot-scope="scope" :row="scope.row" module="Extract"/>
       </el-table-column>
     </el-table>
     <div class="tool-box">
@@ -93,7 +93,8 @@
       }
     },
     mounted() {
-      projectAPI.getFiles(this.dir, 'mrc').then(res => {
+      //更新files
+      projectAPI.overview(this.dir).then(res => {
         this.files.splice(0, this.files.length);
         res.data.forEach((item, index, array) => {
           this.files.push(item)

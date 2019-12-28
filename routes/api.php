@@ -20,7 +20,7 @@ Route::group(['prefix'=>'v1','middleware'=>'auth:api'],function(){
     Route::get('/users', 'API\v1\UserController@getUsers');
 
     Route::post('/project/create', 'API\v1\ProjectController@create');
-    Route::get('/project/files', 'API\v1\ProjectController@files');
+    Route::get('/project/overview', 'API\v1\ProjectController@overview');
     Route::get('/mrc', 'API\v1\ProjectController@mrc');
 
 });

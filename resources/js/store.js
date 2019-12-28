@@ -69,11 +69,6 @@ export default new Vuex.Store({
       state.users=users;
     },
     setProject(state,form){
-      /*for(var key in form){
-        if(form.hasOwnProperty(key)){
-          state.project[key] = form[key];
-        }
-      }*/
       state.project=form;
       localStorage.project=JSON.stringify(state.project);
     }
@@ -84,11 +79,6 @@ export default new Vuex.Store({
       state.commit('setUser',null);
       state.commit('setProject',{});
     },
-    /*login(context,form){
-      UserApi.login(form.username,form.password).then(res=>{
-        context.dispatch('initUser');
-      })
-    },*/
     initUser(context){
       return UserApi.user().then(res=>{
         context.commit('setUser',res.data);

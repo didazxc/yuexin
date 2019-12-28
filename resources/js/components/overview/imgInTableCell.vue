@@ -19,22 +19,17 @@
     props:{row:{type:Object},module:{type:String}},
     data(){
       return {
-        src:"undefined",
+        src:'',
         name:''
       }
     },
     mounted() {
       if (this.row[this.module] !== undefined) {
-        var f = this.row[this.module][0];
-        var path = f.path;
-        if (this.module === "Gctf") {
-          path = path.substring(0, path.lastIndexOf('.')) + ".ctf";
-        }
+        var path = this.row[this.module];
         projectAPI.getMrc(path).then(r => {
           this.src = r.data;
-          //this.row[this.module][0].src = this.src;
         });
-        this.name = f.name;
+        this.name = this.row.name;
       }
     }
   }
