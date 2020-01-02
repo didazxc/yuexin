@@ -16,7 +16,8 @@
         "spatie/laravel-permission": "^3.3",
         "summerblue/administrator": "^6.0",
         "ext-gd": "*",
-        "symfony/translation-contracts": "^1.1.6"
+        "symfony/translation-contracts": "^1.1.6",
+        "ext-json": "*"
     },
     "require-dev": {
         "facade/ignition": "^1.4",

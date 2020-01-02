@@ -45,7 +45,7 @@
       </el-table-column>
     </el-table>
     <div class="tool-box">
-      <el-button type="primary" size="small">TEST</el-button>
+      <el-button type="primary" size="small" @click="test" v-loading="testLoading">TEST</el-button>
       <el-button type="danger" size="small">RUN ALL</el-button>
       <el-button type="success" size="small">SAVE</el-button>
     </div>
@@ -74,7 +74,8 @@
         files: [],
         dialogVisible: false,
         forms:JSON.parse(JSON.stringify(this.$store.getters.getConfig)),
-        step:''
+        step:'',
+        testLoading:false,
       }
     },
     computed: {
@@ -89,7 +90,21 @@
       },
       setConfig(){
         this.dialogVisible = false;
-        console.log(this.forms);
+        this.$store.dispatch("setConfig",this.forms).then(res=>{
+          this.$message.success("配置成功～");
+        }).catch(res=>{
+          this.$message.error("配置信息设置失败，请尝试重新提交");
+        });
+      },
+      test(){
+        if(this.files.length>0){
+          this.testLoading=true;
+          projectAPI.test(this.dir,this.files[0]['name']).then(res=>{
+            this.testLoading=false;
+          }).catch(res=>{
+            this.testLoading=false;
+          });
+        }
       }
     },
     mounted() {

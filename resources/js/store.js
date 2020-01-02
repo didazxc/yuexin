@@ -7,9 +7,6 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    userLoadStatus: 2,//2已登陆，1登陆中，0未登陆，3登陆异常
-    //基本用户信息
-    user:null,
     //菜单配置
     menus:{
       "/set_project":{title:"项目选择"},
@@ -20,28 +17,16 @@ export default new Vuex.Store({
       "/3d":{index:"/3d",title:"3D分组",fa:"fa-cube"},
       "/3dfix":{index:"/3dfix",title:"3D精修",fa:"fa-snowflake-o"}
     },
+    //基本用户信息
+    user:null,
     //用户列表，是个map，包含project
     users:{},
     //项目信息
     project:localStorage.project?JSON.parse(localStorage.project):{},
     //配置信息
-    config:{
-      '_current':{'MotionCor':'MotionCor2','CTF':'Gctf','Pick':'Non-AI:Gautomatch'},
-      'MotionCor':{'MotionCor2':[{name:'a',type:'int',value:'1'}],'Unblur':[{name:'b',type:'double',value:'1.0'}]},
-      'CTF':{'Gctf':[{name:'a',type:'int',value:'1'}],'CTFFIND':[{name:'a',type:'int',value:'1'}]},
-      'Pick':{
-        'Non-AI:Gautomatch':[{name:'a',type:'int',value:'1'}],
-        'Non-AI:RELION':[{name:'a',type:'int',value:'1'}],
-        'AI:EMAN':[{name:'a',type:'int',value:'1'}],
-        'AI:crYOLO':[{name:'a',type:'int',value:'1'}],
-        'AI:Topaz':[{name:'a',type:'int',value:'1'}]
-      },
-    }
+    config:null
   },
   getters: {
-    getUserLoadStatus(state) {
-      return state.userLoadStatus;
-    },
     getUser(state) {
       return state.user;
     },
@@ -59,9 +44,6 @@ export default new Vuex.Store({
     }
   },
   mutations: {
-    setUserLoadStatus(state, status) {
-      state.userLoadStatus = status;
-    },
     setUser(state,user){
       state.user=user;
     },
@@ -71,30 +53,33 @@ export default new Vuex.Store({
     setProject(state,form){
       state.project=form;
       localStorage.project=JSON.stringify(state.project);
+    },
+    setConfig(state,config){
+      state.config = config;
     }
   },
   actions: {
     reset(state){
-      state.commit('setUserLoadStatus',0);
       state.commit('setUser',null);
       state.commit('setProject',{});
-    },
-    initUser(context){
-      return UserApi.user().then(res=>{
-        context.commit('setUser',res.data);
-      }).catch(res=>{
-        window.location.replace("/login");
-      });
-    },
-    refreshUsers(context){
-      return UserApi.users().then(res=>{
-        context.commit('setUsers',res.data);
-      });
+      state.commit('setConfig',null);
     },
     logout(context){
       UserApi.logout().then(res=>{
         context.dispatch('reset');
         window.location.replace("/login");
+      });
+    },
+    initUser(context){
+      return UserApi.user().then(res=>{
+        context.commit('setUser',res.data);
+      }).catch(res=>{
+        context.dispatch("logout");
+      });
+    },
+    refreshUsers(context){
+      return UserApi.users().then(res=>{
+        context.commit('setUsers',res.data);
       });
     },
     async createProject(context,form){
@@ -103,6 +88,24 @@ export default new Vuex.Store({
       });
       await context.dispatch('refreshUsers');
       return 'done';
+    },
+    initConfig(context){
+      var dir = context.getters.getProject.directory;
+      if(dir!==undefined){
+        return ProjectApi.getConf(dir).then(res=>{
+          context.commit('setConfig',res.data);
+        });
+      }else{
+        throw Exception("have not a project directory");
+      }
+    },
+    setConfig(context,conf){
+      var dir = context.getters.getProject.directory;
+      if(dir!==undefined) {
+        return ProjectApi.setConf(dir, conf);
+      }else{
+        throw Exception("have not a project directory");
+      }
     }
   },
 });

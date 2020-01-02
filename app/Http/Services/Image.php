@@ -43,8 +43,14 @@ class Image
             $arr=$a;
         }
         //png
-        $min = min($arr);
-        $range = max($arr)-$min;
+        $min=10000;
+        $max=0;
+        $arr=array_map(function($v)use(&$min,&$max){
+            $res=is_nan($v)?0:$v;
+            if($res<$min){$min=$res;}else if($res>$max){$max=$res;}
+            return $res;
+        },$arr);
+        $range = $max-$min;
         foreach($arr as $k=>$v){
             $row=intval(($k-1)/$nx);
             $col=($k-1)-$row*$nx;

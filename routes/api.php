@@ -23,4 +23,9 @@ Route::group(['prefix'=>'v1','middleware'=>'auth:api'],function(){
     Route::get('/project/overview', 'API\v1\ProjectController@overview');
     Route::get('/mrc', 'API\v1\ProjectController@mrc');
 
+    Route::get('/project/conf', 'API\v1\ProjectController@getConf');
+    Route::post('/project/conf', 'API\v1\ProjectController@setConf');
+
+    Route::post('/project/test', 'API\v1\ProjectController@test');
+
 });

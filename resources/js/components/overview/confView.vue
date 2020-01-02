@@ -1,7 +1,7 @@
 <template>
   <el-tabs :value="module" @input="handleInput">
     <el-tab-pane v-for="(form,name) in forms" :key="name" :label="name" :name="name">
-      <confForm :form="form"/>
+      <confForm :form="form.args"/>
     </el-tab-pane>
   </el-tabs>
 </template>
