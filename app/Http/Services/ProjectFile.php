@@ -12,17 +12,16 @@ class ProjectFile
 
     private static $disk = 'root';
     private static $confDir = '/.yx/conf';
-    private static $moviesModule = 'Movies';
     private static $cmdsConfFile = 'cmds.json';
     private static $appDir = "/media/zhangtaotao/软件/work/xinyue/app";
 
     /**
-     * 获取项目的初始图片，位于其Movies子目录下
+     *  获取项目下特定模块的图片
      * @param $project_dir string 项目目录
+     * @param $module string 子目录
      * @return \Illuminate\Support\Collection ['path','file_name','name','module','ext']
      */
-    static public function movies($project_dir){
-        $module = ProjectFile::$moviesModule;
+    static public function imgFiles($project_dir,$module){
         $extensions = ['mrc','mrcs','tif','tiff'];
         $raw_list = Storage::disk(ProjectFile::$disk)->files($project_dir.'/'.$module);
         $files=collect($raw_list)
