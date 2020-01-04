@@ -6,7 +6,6 @@ use App\Http\Services\ProjectFile;
 use App\Models\Project;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
-use App\Http\Services\Image;
 
 class ProjectController extends Controller
 {
@@ -32,7 +31,7 @@ class ProjectController extends Controller
     public function overview(Request $request){
         $request->validate(['projectDir'=>'required']);
         $project_dir=$request->input('projectDir');
-        $files = ProjectFile::movies($project_dir);
+        $files = ProjectFile::imgFiles($project_dir,"Movies");
         //整合MotionCor和CTF模块
         $res=$files->map(function($it)use($project_dir){
             $name=$it['name'];
@@ -47,12 +46,6 @@ class ProjectController extends Controller
             return $item;
         });
         return $res;
-    }
-
-    public function mrc(Request $request){
-        $request->validate(['path'=>'required']);
-        $path=$request->input('path');
-        return Image::mrc2png($path);
     }
 
     public function getConf(Request $request){
@@ -70,7 +63,7 @@ class ProjectController extends Controller
         return 'done';
     }
 
-    public function test(Request $request){
+    public function runTest(Request $request){
         $request->validate(['projectDir'=>'required','name'=>'required']);
         $project_dir=$request->input('projectDir');
         $name=$request->input("name");
@@ -82,8 +75,16 @@ class ProjectController extends Controller
         return trim(shell_exec("$cmd 2>&1"));
     }
 
-    public function preprocess(Request $request){}
+    public function preprocess(Request $request){
+        $request->validate(['projectDir'=>'required']);
+        $project_dir=$request->input('projectDir');
+        $files = ProjectFile::imgFiles($project_dir,"CTF");
+    }
 
     public function pick(Request $request){}
+
+    public function getMark(Request $request){}
+
+    public function setMark(Request $request){}
 
 }
