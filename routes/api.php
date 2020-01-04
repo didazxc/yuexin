@@ -14,18 +14,25 @@ use Illuminate\Http\Request;
 */
 
 
-Route::group(['prefix'=>'v1','middleware'=>'auth:api'],function(){
+Route::group(['prefix'=>'v1','middleware'=>'auth:api','namespace'=>'\App\Http\Controllers\API\v1'],function(){
 
-	Route::get('/user', 'API\v1\UserController@getUser');
-    Route::get('/users', 'API\v1\UserController@getUsers');
+	Route::get('/user', 'UserController@getUser');
+    Route::get('/users', 'UserController@getUsers');
 
-    Route::post('/project/create', 'API\v1\ProjectController@create');
-    Route::get('/project/overview', 'API\v1\ProjectController@overview');
-    Route::get('/mrc', 'API\v1\ProjectController@mrc');
+    Route::get('/mrc', 'ImageController@getMrc');
 
-    Route::get('/project/conf', 'API\v1\ProjectController@getConf');
-    Route::post('/project/conf', 'API\v1\ProjectController@setConf');
+    Route::group(['prefix'=>'project'],function(){
+        Route::post('/create', 'ProjectController@create');
 
-    Route::post('/project/test', 'API\v1\ProjectController@test');
+        Route::get('/overview', 'ProjectController@overview');
+        Route::get('/conf', 'ProjectController@getConf');
+        Route::post('/conf', 'ProjectController@setConf');
+        Route::post('/test', 'ProjectController@runTest');
+
+        Route::get('/preprocess', 'ProjectController@preprocess');
+        Route::get('/pick', 'ProjectController@pick');
+        Route::get('/pick/mark', 'ProjectController@getMark');
+        Route::post('/pick/mark', 'ProjectController@setMark');
+    });
 
 });
