@@ -30,20 +30,29 @@
         currentRow:null,
         imgsrc:'',
         star:[],
-        tableData:[
-          {name:'aa.mrc',df:18000,astig:1000,fit:3.5,mark:'good',picks:600,path:'/home/test/May08_03.05.02.bin.mrc'},
-          {name:'aa1.mrc',df:18000,astig:1000,fit:3.5,mark:'good',picks:600,path:''},
-          {name:'aa2.mrc',df:18000,astig:1000,fit:3.5,mark:'bad',picks:600,path:''},
-          {name:'aa3.mrc',df:18000,astig:1000,fit:3.5,mark:'good',picks:600,path:''}
-        ],
+        tableData:[],
+      }
+    },
+    computed: {
+      dir() {
+        return this.$store.getters.getProject.directory;
       }
     },
     methods:{
       handleCurrentChange(val){
-        projectAPI.getMrc(val.path).then(res=>{
+        projectAPI.getMrc(val.src).then(res=>{
           this.imgsrc = res.data;
         })
       }
+    },
+    mounted() {
+      //更新tableData
+      projectAPI.pick(this.dir).then(res => {
+        this.tableData.splice(0, this.tableData.length);
+        res.data.forEach((item, index, array) => {
+          this.tableData.push(item)
+        });
+      });
     }
   }
 </script>

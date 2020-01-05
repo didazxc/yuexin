@@ -25,8 +25,8 @@
           image: null
         },
         configKonva: {
-          width: 1000,
-          height: 800,
+          width: 400,
+          height: 400,
           draggable: true,
           scale:{x:this.zoomVal,y:this.zoomVal}
         },

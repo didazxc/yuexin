@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\API\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Services\Image;
 use App\Http\Services\ProjectFile;
 use App\Models\Project;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
@@ -78,13 +79,61 @@ class ProjectController extends Controller
     public function preprocess(Request $request){
         $request->validate(['projectDir'=>'required']);
         $project_dir=$request->input('projectDir');
-        $files = ProjectFile::imgFiles($project_dir,"CTF");
+        $files = ProjectFile::imgFiles($project_dir,"Movies");
+        $res=$files->map(function($it)use($project_dir){
+            $name=$it['name'];
+            $item=[];
+            $item['name']=$name;
+            $item['df']=10;
+            $item['fit']=50;
+            $item['astig']=100;
+            $item['mark']='good';
+
+            $item['src']=[];
+            $item['src']['Movies']=$project_dir.'/Movies/'.$name.'.mrc';
+            $item['src']['MotionCor']=$project_dir.'/MotionCor/'.$name.'.mrc';
+            $item['src']['CTF']=$project_dir.'/CTF/'.$name.'.ctf';
+
+            return $item;
+        });
+        return $res;
     }
 
-    public function pick(Request $request){}
+    public function pick(Request $request){
+        $request->validate(['projectDir'=>'required']);
+        $project_dir=$request->input('projectDir');
+        $files = ProjectFile::imgFiles($project_dir,"Movies");
+        $res=$files->map(function($it)use($project_dir){
+            $name=$it['name'];
+            $item=[];
+            $item['name']=$name;
+            $item['df']=10;
+            $item['fit']=50;
+            $item['astig']=100;
+            $item['mark']='good';
+            $item['picks']=200;
 
-    public function getMark(Request $request){}
+            $item['src']=$project_dir.'/MotionCor/'.$name.'.mrc';
 
-    public function setMark(Request $request){}
+            return $item;
+        });
+        return $res;
+    }
+
+    public function getMark(Request $request){
+        $request->validate(['projectDir'=>'required','name'=>'required']);
+        $project_dir=$request->input('projectDir');
+        $name=$request->input("name");
+        return Image::getStar($project_dir.'/Mark/'.$name.'.star');
+    }
+
+    public function setMark(Request $request){
+        $request->validate(['projectDir'=>'required','name'=>'required','arr'=>'required|array']);
+        $project_dir=$request->input('projectDir');
+        $name=$request->input("name");
+        $arr=$request->input("arr");
+        Image::saveStar($project_dir.'/Mark/'.$name.'.star',$arr);
+        return 'done';
+    }
 
 }

@@ -24,18 +24,18 @@
           <el-tab-pane label="预览">
             <el-row :gutter="10">
               <el-col :sm="24" :md="12">
-                <el-image/>
+                <mrcImg :path="src['Movies']"/>
               </el-col>
               <el-col :sm="24" :md="12">
-                <el-image/>
+                <mrcImg :path="src['MotionCor']"/>
               </el-col>
             </el-row >
             <el-row :gutter="10">
               <el-col :sm="24" :md="12">
-                <el-image/>
+                <mrcImg :path="src['MotionCor']"/>
               </el-col>
               <el-col :sm="24" :md="12">
-                <el-image/>
+                <mrcImg :path="src['CTF']"/>
               </el-col>
             </el-row>
           </el-tab-pane>
@@ -49,17 +49,16 @@
 </template>
 
 <script>
+  import projectAPI from "../api/project";
+  import mrcImg from "../components/common/mrcImg";
+
   export default {
     name: "Preprocess",
+    components:{mrcImg},
     data(){
       return {
         currentRow:null,
-        tableData:[
-          {name:'aa.mrc',df:18000,astig:1000,fit:3.5,mark:'good',},
-          {name:'aa1.mrc',df:18000,astig:1000,fit:3.5,mark:'good'},
-          {name:'aa2.mrc',df:18000,astig:1000,fit:3.5,mark:'bad'},
-          {name:'aa3.mrc',df:18000,astig:1000,fit:3.5,mark:'good'}
-        ],
+        tableData:[],
         options:{
           xAxis: {},
           yAxis: {},
@@ -83,13 +82,35 @@
         },
       }
     },
+    computed: {
+      dir() {
+        return this.$store.getters.getProject.directory;
+      },
+      src(){
+        if(this.currentRow!==null && this.currentRow['src']!==undefined){
+          return this.currentRow['src'];
+        }else{
+          return {'Movies':null,'MotionCor':null,'CTF':null};
+        }
+      }
+    },
     methods:{
       handleCurrentChange(val){
         this.currentRow = val;
       },
       mark(val){
+        //sudo 提交
         this.currentRow.mark=val;
       }
+    },
+    mounted() {
+      //更新tableData
+      projectAPI.preprocess(this.dir).then(res => {
+        this.tableData.splice(0, this.tableData.length);
+        res.data.forEach((item, index, array) => {
+          this.tableData.push(item)
+        });
+      });
     }
   }
 </script>

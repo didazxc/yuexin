@@ -89,7 +89,7 @@ class ProjectFile
      * @return mixed json解析后的数组
      * @throws FileNotFoundException
      */
-    static public function getParsedCmds($project_dir,$name){
+    static private function getParsedCmds($project_dir,$name){
         $path = $project_dir.ProjectFile::$confDir.'/'.ProjectFile::$cmdsConfFile;
         $content = Storage::disk(ProjectFile::$disk)->get($path);
         $content = addslashes($content);
@@ -108,13 +108,15 @@ class ProjectFile
      */
     static public function getTestCmd($project_dir,$name){
         $cmds = ProjectFile::getParsedCmds($project_dir, $name);
-        $cmd_arr = array_map(function($cmd){
+        $cmd_arr=[];
+        foreach($cmds['_current'] as $mod=>$func){
+            $cmd=$cmds[$mod][$func];
             $str = trim($cmd['cmd_before'],';').";".trim($cmd['cmd'],';');
             foreach($cmd['args'] as $v){
                 $str.=" ${v['name']} ${v['value']} ";
             }
-            return $str;
-        },$cmds);
+            $cmd_arr[]=$str;
+        }
         $cmd_str=trim(implode(";",$cmd_arr),';');
         $cmd="cd $project_dir;$cmd_str";
         return $cmd;
