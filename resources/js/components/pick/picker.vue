@@ -5,11 +5,11 @@
         <v-image :config="configImage" />
       </v-layer>
       <v-layer>
-        <v-circle v-for="s in star" :key="s._rlnCoordinateX+':'+s._rlnCoordinateY" :config="{x:s._rlnCoordinateX,y:s._rlnCoordinateY,radius:50,fill: '',stroke:'red',strokeWidth:2}" />
+        <v-circle v-for="s in star" :key="s._rlnCoordinateX+':'+s._rlnCoordinateY" :config="{x:Number(s._rlnCoordinateX),y:Number(s._rlnCoordinateY),radius:50,fill: '',stroke:'red',strokeWidth:2}" />
       </v-layer>
     </v-stage>
     <div class="toolbox">
-      <button @click="save"><i class="fa fa-save"></i></button>
+      <button @click="save"><i class="fa fa-save"/></button>
     </div>
   </div>
 </template>

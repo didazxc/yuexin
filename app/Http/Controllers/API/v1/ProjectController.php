@@ -124,7 +124,7 @@ class ProjectController extends Controller
         $request->validate(['projectDir'=>'required','name'=>'required']);
         $project_dir=$request->input('projectDir');
         $name=$request->input("name");
-        return Image::getStar($project_dir.'/Mark/'.$name.'.star');
+        return Image::getStar($project_dir.'/Mark/'.$name.'_automatch.star');
     }
 
     public function setMark(Request $request){

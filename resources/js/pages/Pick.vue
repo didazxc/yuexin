@@ -42,7 +42,10 @@
       handleCurrentChange(val){
         projectAPI.getMrc(val.src).then(res=>{
           this.imgsrc = res.data;
-        })
+        });
+        projectAPI.getMark(this.dir,val.name).then(res=>{
+          this.star = res.data;
+        });
       }
     },
     mounted() {
