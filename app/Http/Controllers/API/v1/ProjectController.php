@@ -25,6 +25,21 @@ class ProjectController extends Controller
         return $project;
     }
 
+    public function png(Request $request){
+        $request->validate(['projectDir'=>'required','module'=>'required','name'=>'required','ext'=>'required']);
+        $project_dir=$request->input('projectDir');
+        $module=$request->input("module");
+        $name=$request->input("name");
+        $ext=$request->input("ext");
+        return ProjectFile::png($project_dir,$module,$name,$ext);
+    }
+
+    public function clear(Request $request){
+        $request->validate(['projectDir'=>'required']);
+        $project_dir=$request->input('projectDir');
+        ProjectFile::clear($project_dir);
+    }
+
     /**
      * @param Request $request
      * @return \Illuminate\Support\Collection ['Movies','MotionCor','CTF','Mark','Pick','Extract']

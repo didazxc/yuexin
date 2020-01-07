@@ -6,19 +6,19 @@
         <template slot="header">
           Movie
         </template>
-        <imgInTableCell slot-scope="scope" :row="scope.row" module="Movies"/>
+        <imgInTableCell slot-scope="scope" :name="scope.row.name" module="Movies"/>
       </el-table-column>
       <el-table-column>
         <template slot="header">
           <el-button @click="openConfForm('MotionCor')">Motion-corr R</el-button>
         </template>
-        <imgInTableCell slot-scope="scope" :row="scope.row" module="MotionCor"/>
+        <imgInTableCell slot-scope="scope" :name="scope.row.name" module="MotionCor"/>
       </el-table-column>
       <el-table-column>
         <template slot="header">
           <el-button @click="openConfForm('CTF')">CTF R</el-button>
         </template>
-        <imgInTableCell slot-scope="scope" :row="scope.row" module="CTF"/>
+        <imgInTableCell slot-scope="scope" :name="scope.row.name" ext="ctf" module="CTF"/>
       </el-table-column>
       <el-table-column>
         <template slot="header">
@@ -41,7 +41,7 @@
         <template slot="header">
           Extract R
         </template>
-        <imgInTableCell slot-scope="scope" :row="scope.row" module="Extract"/>
+        <imgInTableCell slot-scope="scope" :name="scope.row.name" ext="ctf" module="CTF"/>
       </el-table-column>
     </el-table>
     <div class="tool-box">
@@ -78,11 +78,6 @@
         testLoading:false,
       }
     },
-    computed: {
-      dir() {
-        return this.$store.getters.getProject.directory;
-      }
-    },
     methods: {
       openConfForm(step) {
         this.step=step;
@@ -109,7 +104,7 @@
     },
     mounted() {
       //更新files
-      projectAPI.overview(this.dir).then(res => {
+      projectAPI.overview().then(res => {
         this.files.splice(0, this.files.length);
         res.data.forEach((item, index, array) => {
           this.files.push(item)

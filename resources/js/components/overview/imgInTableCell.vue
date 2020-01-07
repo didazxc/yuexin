@@ -1,28 +1,31 @@
 <template>
   <div>
-    <mrcImg :path="path" styleStr="width:100px;height:100px;"/>
+    <el-image :src="src"
+              style="width:100px;height:100px;" fit="fill"
+              :preview-src-list="[src]">
+      <div slot="placeholder" class="image-slot">
+        加载中<span class="dot">...</span>
+      </div>
+    </el-image>
     <div>{{name}}</div>
   </div>
 </template>
 
 <script>
-  import mrcImg from "../common/mrcImg";
+  import projectAPI from "../../api/project";
 
   export default {
     name: "imgInTableCell",
-    components:{mrcImg},
-    props:{row:{type:Object},module:{type:String}},
+    props:{name:{type:String},module:{type:String},ext:{type:String,default:'mrc'}},
     data(){
       return {
-        path:null,
-        name:''
+        src:'',
       }
     },
     mounted() {
-      if (this.row[this.module] !== undefined) {
-        this.path = this.row[this.module];
-        this.name = this.row.name;
-      }
+      projectAPI.getPng(this.module,this.name,this.ext).then(res=>{
+        this.src=res.data;
+      })
     }
   }
 </script>

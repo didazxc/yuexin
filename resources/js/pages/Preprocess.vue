@@ -24,18 +24,38 @@
           <el-tab-pane label="预览">
             <el-row :gutter="10">
               <el-col :sm="24" :md="12">
-                <mrcImg :path="src['Movies']"/>
+                <el-image :src="src['Movies']" fit="fill"
+                          :preview-src-list="[src['Movies']]">
+                  <div slot="placeholder" class="image-slot">
+                    加载中<span class="dot">...</span>
+                  </div>
+                </el-image>
               </el-col>
               <el-col :sm="24" :md="12">
-                <mrcImg :path="src['MotionCor']"/>
+                <el-image :src="src['trace']" fit="fill"
+                          :preview-src-list="[src['trace']]">
+                  <div slot="placeholder" class="image-slot">
+                    加载中<span class="dot">...</span>
+                  </div>
+                </el-image>
               </el-col>
             </el-row >
             <el-row :gutter="10">
               <el-col :sm="24" :md="12">
-                <mrcImg :path="src['MotionCor']"/>
+                <el-image :src="src['MotionCor']" fit="fill"
+                          :preview-src-list="[src['MotionCor']]">
+                  <div slot="placeholder" class="image-slot">
+                    加载中<span class="dot">...</span>
+                  </div>
+                </el-image>
               </el-col>
               <el-col :sm="24" :md="12">
-                <mrcImg :path="src['CTF']"/>
+                <el-image :src="src['CTF']" fit="fill"
+                          :preview-src-list="[src['CTF']]">
+                  <div slot="placeholder" class="image-slot">
+                    加载中<span class="dot">...</span>
+                  </div>
+                </el-image>
               </el-col>
             </el-row>
           </el-tab-pane>
@@ -59,6 +79,7 @@
       return {
         currentRow:null,
         tableData:[],
+        src:{'Movies':'','trace':'','MotionCor':'','CTF':''},
         options:{
           xAxis: {},
           yAxis: {},
@@ -82,21 +103,17 @@
         },
       }
     },
-    computed: {
-      dir() {
-        return this.$store.getters.getProject.directory;
-      },
-      src(){
-        if(this.currentRow!==null && this.currentRow['src']!==undefined){
-          return this.currentRow['src'];
-        }else{
-          return {'Movies':null,'MotionCor':null,'CTF':null};
-        }
-      }
-    },
     methods:{
       handleCurrentChange(val){
         this.currentRow = val;
+        this.src['Movies']='';
+        this.src['trace']='';
+        this.src['MotionCor']='';
+        this.src['CTF']='';
+        projectAPI.getPng('Movies',val.name,'mrc').then(res=>{this.src['Movies']=res.data;});
+        projectAPI.getPng('MotionCor',val.name,'aln').then(res=>{this.src['trace']=res.data;});
+        projectAPI.getPng('MotionCor',val.name,'mrc').then(res=>{this.src['MotionCor']=res.data;});
+        projectAPI.getPng('CTF',val.name,'ctf').then(res=>{this.src['CTF']=res.data;});
       },
       mark(val){
         //sudo 提交
@@ -105,7 +122,7 @@
     },
     mounted() {
       //更新tableData
-      projectAPI.preprocess(this.dir).then(res => {
+      projectAPI.preprocess().then(res => {
         this.tableData.splice(0, this.tableData.length);
         res.data.forEach((item, index, array) => {
           this.tableData.push(item)

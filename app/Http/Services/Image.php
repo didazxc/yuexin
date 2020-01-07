@@ -5,15 +5,26 @@ use Illuminate\Support\Facades\Storage;
 
 class Image
 {
-    static public function mrc2png($filePath){
+    static public function mrc2Png($filePath,$outFilePath){
         $fh = fopen($filePath, "rb");
         $head=unpack('LNX/LNY/LNZ/LMODE',fread($fh, 1024));
         $nx = $head['NX'];
         $ny = $head['NY'];
-        $length = $nx*$ny*1;
+        $nz = $head['NZ'];
+        $length = $nx*$ny*$nz;
         $content=fread($fh,$length*32);
-        $a=unpack('f'.$length,$content);
+        $rawArr=unpack('f'.$length,$content);
         fclose($fh);
+        //平均
+        $a=[0];
+        $len = $nx*$ny;
+        for($i=1;$i<$len+1;$i++){
+            $sum=$rawArr[$i];
+            for($n=1;$n<$nz;$n++){
+                $sum+=$rawArr[$i+$len];
+            }
+            $a[]=$sum/$nz;
+        }
         //生成GD图片
         $img = imageCreate($nx, $ny);
         $c_arr=[];
@@ -58,18 +69,20 @@ class Image
             imagesetpixel($img, $col, $row, $c_arr[$value]);
         };
         //返回图片
-        /*header("Content-Type: image/png");
-        imagepng($img);
-        imagedestroy($img);*/
-        ob_start ();
+        header("Content-Type: image/png");
+        imagepng($img,$outFilePath);
+        imagedestroy($img);
+
+        /*ob_start ();
         imagepng ($img);
         $image_data = ob_get_contents ();
         ob_end_clean ();
         imagedestroy($img);
-        return 'data:image/png;charset=utf-8;base64,'.base64_encode($image_data);
+        return 'data:image/png;charset=utf-8;base64,'.base64_encode($image_data);*/
+
     }
 
-    static public function files($dir,$extensions){
+    static private function files($dir,$extensions){
         $raw_list = Storage::disk('root')->allFiles($dir);
         $files=collect($raw_list)
             ->filter(function($path)use($extensions){
@@ -106,8 +119,116 @@ class Image
         return $files;
     }
 
-    static public function motionTracePng($filePath){}
+    static private function getAlnData($filePath){
+        $res=[];
+        $module='';
+        $index=0;
+        $fp = fopen($filePath,"r");
+        while(!feof($fp)){
+            $line=trim(fgets($fp),"\n");
+            $first=substr($line,0,1);
+            if($first!=' '){
+                $module=$line;
+                $res[$module]=[];
+            }else{
+                $line=trim($line);
+                $arr=preg_split("/\s+/",$line);
+                if($module=='setting'){
+                    $res[$module][trim($arr[0],':')]=$arr;
+                }else if($module=='globalShift'){
+                    if($arr[0]!='stackID')$res[$module][$arr[0]]=$arr;
+                }else{
+                    if($arr[0]=='patchID:'){
+                        $index=$arr[1];
+                    }else if($arr[0]!='Converge:'){
+                        $res[$module][$index][$arr[0]]=$arr;
+                    }
+                }
 
+            }
+        }
+        fclose($fp);
+        return $res;
+    }
+
+    static public function motion2Png($filePath,$outFilePath){
+        $data=Image::getAlnData($filePath);
+        //图片大小
+        $nX=$data['setting']['stackSize'][1];
+        $nY=$data['setting']['stackSize'][2];
+        //行列数
+        $gridX=$data['setting']['patches'][1];
+        $gridY=$data['setting']['patches'][2];
+        //行高与列宽
+        $gridXL=$nX/$gridX;
+        $gridYL=$nY/$gridY;
+        //生成GD图片
+        if($gridX>0 && $gridY>0){
+            $img = imageCreate($nX,$nY);
+            $c_arr=['white'=>imageColorAllocate($img,255,255,255),
+                'blue'=>imageColorAllocate($img,0,0,255),
+                'red'=>imageColorAllocate($img,255,0,0),
+                'gray'=>imageColorAllocate($img,211,211,211)];
+            for($i=1;$i<$gridX;$i++){
+                $row = $i*$gridYL;
+                imageline($img,0,$row,$nX,$row,$c_arr['gray']);
+            }
+            for($j=1;$j<$gridY;$j++){
+                $col = $j*$gridXL;
+                imageline($img,$col,0,$col,$nY,$c_arr['gray']);
+            }
+            //中心
+            $cX=$nX/2;
+            $cY=$nY/2;
+            imagesetpixel($img, $cX, $cY, $c_arr['red']);
+            $lastX=$cX;
+            $lastY=$cY;
+            foreach($data['globalShift'] as $v){
+                imageline($img,$lastX,$lastY,$cX+$v[1],$cY+$v[2],$c_arr['red']);
+                $lastX=$cX+$v[1];
+                $lastY=$cY+$v[2];
+            }
+            //patches
+            foreach($data['localShift'] as $patch){
+                $lastX=$patch[0][1];
+                $lastY=$patch[0][2];
+                foreach($patch as $v) {
+                    if(count($v)>4){
+                        imageline($img, $lastX, $lastY, $v[1] + $v[3], $v[2] + $v[4], $c_arr['blue']);
+                        $lastX=$v[1]+$v[3];
+                        $lastY=$v[2]+$v[4];
+                    }
+                }
+            }
+
+            //展示
+            header("Content-Type: image/png");
+            imagepng($img,$outFilePath);
+            imagedestroy($img);
+
+            /*ob_start ();
+            imagepng ($img);
+            $image_data = ob_get_contents ();
+            ob_end_clean ();
+            imagedestroy($img);
+            return 'data:image/png;charset=utf-8;base64,'.base64_encode($image_data);*/
+        }
+        //return "";
+    }
+
+    static public function lowPassPngStr($filePath){
+        return '';
+    }
+
+    static public function contrastPngStr($filePath){
+        return '';
+    }
+
+    /**
+     * 获取star文件中的数据
+     * @param string $filePath
+     * @return array
+     */
     static public function getStar(string $filePath){
         $fp = fopen($filePath,"r");
         $block_step = "";
@@ -134,6 +255,12 @@ class Image
         return $res;
     }
 
+    /**
+     * 将数组保存为star格式
+     * @param string $filePath
+     * @param array $json_arr
+     * @return bool
+     */
     static public function saveStar(string $filePath, array $json_arr)
     {
         if(sizeof($json_arr)>0){

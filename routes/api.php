@@ -17,9 +17,11 @@ Route::group(['prefix'=>'v1','middleware'=>'auth:api','namespace'=>'\App\Http\Co
 	Route::get('/user', 'UserController@getUser');
     Route::get('/users', 'UserController@getUsers');
 
-    Route::get('/mrc', 'ImageController@getMrc');
-
     Route::group(['prefix'=>'project'],function(){
+
+        Route::get('/png', 'ProjectController@png');
+        Route::post('/clear', 'ProjectController@clear');
+
         Route::post('/create', 'ProjectController@create');
 
         Route::get('/overview', 'ProjectController@overview');

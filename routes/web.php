@@ -11,16 +11,14 @@
 |
 */
 
+use App\Http\Services\Image;
+
 Route::get('/', 'Web\AppController@getApp')
 ->middleware('auth');
 
 Auth::routes(['register' => false]);
 
-Route::get('/test', function(){
-    $user=App\User::find(0);
-    if(!$user){
-        App\User::create(['name'=>'admin','email'=>'admin1@admin.com','password'=>'administrator']);
-        echo 2;
-    }
+Route::get('/test.png', function(){
+    //Image::motionTracePng("/media/zhangtaotao/软件/work/xinyue/test/MotionCor","May08_03.05.02.bin");
 });
 

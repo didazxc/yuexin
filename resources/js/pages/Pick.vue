@@ -33,24 +33,19 @@
         tableData:[],
       }
     },
-    computed: {
-      dir() {
-        return this.$store.getters.getProject.directory;
-      }
-    },
     methods:{
       handleCurrentChange(val){
-        projectAPI.getMrc(val.src).then(res=>{
+        projectAPI.getPng('MotionCor',val.name,'mrc').then(res=>{
           this.imgsrc = res.data;
         });
-        projectAPI.getMark(this.dir,val.name).then(res=>{
+        projectAPI.getMark(val.name).then(res=>{
           this.star = res.data;
         });
       }
     },
     mounted() {
       //更新tableData
-      projectAPI.pick(this.dir).then(res => {
+      projectAPI.pick().then(res => {
         this.tableData.splice(0, this.tableData.length);
         res.data.forEach((item, index, array) => {
           this.tableData.push(item)

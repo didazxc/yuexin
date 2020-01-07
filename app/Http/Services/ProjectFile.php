@@ -15,6 +15,35 @@ class ProjectFile
     private static $cmdsConfFile = 'cmds.json';
     private static $appDir = "/media/zhangtaotao/软件/work/xinyue/app";
 
+    static public function clear($project_dir){
+        $dirs=Storage::disk(ProjectFile::$disk)->allDirectories($project_dir);
+        $arr=array_filter($dirs,function($item){return $item!='Movies';});
+        foreach($arr as $dir){
+            Storage::disk(ProjectFile::$disk)->deleteDirectory($dir);
+        }
+    }
+
+    /**
+     * 读取时转png；以后可以改为处理时转png
+     * @param $project_dir
+     * @param $module
+     * @param $name
+     * @param $ext
+     */
+    static public function png($project_dir,$module,$name,$ext){
+        $path="$project_dir/$module/$name.$ext.png";
+        if(!Storage::disk(ProjectFile::$disk)->exists($path)){
+            if($ext=='mrc' || $ext=='ctf'){
+                Image::mrc2Png("$project_dir/$module/$name.$ext","$project_dir/$module/$name.$ext.png");
+            }
+            if($module=='MotionCor'){
+                Image::motion2Png("$project_dir/$module/$name.aln","$project_dir/$module/$name.aln.png");
+            }
+        }
+        $image_data = file_get_contents($path);
+        return 'data:image/png;charset=utf-8;base64,'.base64_encode($image_data);
+    }
+
     /**
      *  获取项目下特定模块的图片
      * @param $project_dir string 项目目录
