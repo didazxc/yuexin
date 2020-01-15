@@ -7,13 +7,18 @@ namespace App\Http\Services;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * 项目文件的读取与保存逻辑
+ * Class ProjectFile
+ * @package App\Http\Services
+ */
 class ProjectFile
 {
 
     private static $disk = 'root';
     private static $confDir = '/.yx/conf';
     private static $cmdsConfFile = 'cmds.json';
-    private static $appDir = "/media/zhangtaotao/软件/work/xinyue/app";
+    private static $appDir = "/app/app";
 
     static public function clear($project_dir){
         $dirs=Storage::disk(ProjectFile::$disk)->allDirectories($project_dir);
@@ -24,25 +29,86 @@ class ProjectFile
     }
 
     /**
-     * 读取时转png；以后可以改为处理时转png
+     * 读取png
      * @param $project_dir
      * @param $module
      * @param $name
      * @param $ext
      */
     static public function png($project_dir,$module,$name,$ext){
+        //$filePath = "$project_dir/$module/$name.$ext";
         $path="$project_dir/$module/$name.$ext.png";
         if(!Storage::disk(ProjectFile::$disk)->exists($path)){
-            if($ext=='mrc' || $ext=='ctf'){
-                Image::mrc2Png("$project_dir/$module/$name.$ext","$project_dir/$module/$name.$ext.png");
-            }
-            if($module=='MotionCor'){
-                Image::motion2Png("$project_dir/$module/$name.aln","$project_dir/$module/$name.aln.png");
-            }
+            return '';
         }
         $image_data = file_get_contents($path);
         return 'data:image/png;charset=utf-8;base64,'.base64_encode($image_data);
     }
+
+    static public function existPng($project_dir,$module,$name,$ext){
+        $filePath = "$project_dir/$module/$name.$ext";
+        $path="$filePath.png";
+        return Storage::disk(ProjectFile::$disk)->exists($path);
+    }
+
+    /**
+     * 获取star文件中的数据
+     * @param string $filePath
+     * @return array
+     */
+    static public function getStar(string $filePath){
+        $fp = fopen($filePath,"r");
+        $block_step = "";
+        $colNames=[];
+        $colNum=0;
+        $res=[];
+        while(!feof($fp)){
+            $line=trim(fgets($fp));
+            $arr=preg_split("/\s+/",$line);
+            if($line=="loop_"){
+                $block_step=$line;
+            }else if($block_step=="loop_"){
+                if(sizeof($arr)==2 && substr($arr[0],0,4)=='_rln'){
+                    $colNames[]=$arr[0];
+                }else{
+                    $block_step="loop_data_";
+                    $colNum=sizeof($colNames);
+                }
+            }else if($block_step=="loop_data_"){
+                if(sizeof($arr)==$colNum)$res[]=array_combine($colNames,$arr);
+            }
+        }
+        fclose($fp);
+        return $res;
+    }
+
+    /**
+     * 将数组保存为star格式
+     * @param string $filePath
+     * @param array $json_arr
+     * @return bool
+     */
+    static public function saveStar(string $filePath, array $json_arr)
+    {
+        if(sizeof($json_arr)>0){
+            $names=array_keys($json_arr[0]);
+            $arr=array_map(function($point)use($names){
+                $values=array_map(function($name)use($point){
+                    if(array_key_exists($name, $point)){
+                        return $point[$name];
+                    }
+                    return "";
+                },$names);
+                return implode(" ", $values);
+            },$json_arr);
+            $content = implode("\n", $arr);
+            array_walk($names,function(&$name,$k){$name.=" #".($k+1);});
+            $header= "loop_\n".implode("\n", $names)."\n";
+            Storage::disk('root')->put($filePath,$header.$content);
+        }
+        return true;
+    }
+
 
     /**
      *  获取项目下特定模块的图片
@@ -75,13 +141,17 @@ class ProjectFile
      * @param $project_dir string 项目目录
      * @return bool 是否成功
      */
-    static public function initConf($project_dir){
+    static public function initConf($project_dir,$raw_root = ''){
         if(!Storage::disk(ProjectFile::$disk)->exists($project_dir)){
             Storage::disk(ProjectFile::$disk)->makeDirectory($project_dir);
         }
         // copy conf files which not exist before
+        if($raw_root=='' || !Storage::disk(ProjectFile::$disk)->exists($raw_root)){
+            $raw_root=resource_path('conf');
+        }else{
+            $raw_root=$raw_root.ProjectFile::$confDir;
+        }
         $new_root = $project_dir.ProjectFile::$confDir;
-        $raw_root = resource_path('conf');
         $files = Storage::disk(ProjectFile::$disk)->allFiles($raw_root);
         array_walk($files, function($v,$k)use($new_root,$raw_root){
             $new_v = str_replace($raw_root, $new_root, '/'.$v);
@@ -110,6 +180,7 @@ class ProjectFile
         Storage::disk('root')->put($path,json_encode($arr));
         return true;
     }
+
 
     /**
      * 获取参数替换后的cmds

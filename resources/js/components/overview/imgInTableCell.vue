@@ -6,8 +6,11 @@
       <div slot="placeholder" class="image-slot">
         加载中<span class="dot">...</span>
       </div>
+      <div slot="error" class="image-slot">
+        {{errorMsg}}
+      </div>
     </el-image>
-    <div>{{name}}</div>
+    <div v-if="module==='Movies'">{{name}}</div>
   </div>
 </template>
 
@@ -20,11 +23,12 @@
     data(){
       return {
         src:'',
+        errorMsg:'执行中...',
       }
     },
     mounted() {
       projectAPI.getPng(this.module,this.name,this.ext).then(res=>{
-        this.src=res.data;
+        if(res.data.data){this.src=res.data.data;}
       })
     }
   }

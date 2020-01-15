@@ -72,19 +72,19 @@ export default new Vuex.Store({
     },
     initUser(context){
       return UserApi.user().then(res=>{
-        context.commit('setUser',res.data);
+        context.commit('setUser',res.data.data);
       }).catch(res=>{
         context.dispatch("logout");
       });
     },
     refreshUsers(context){
       return UserApi.users().then(res=>{
-        context.commit('setUsers',res.data);
+        context.commit('setUsers',res.data.data);
       });
     },
     async createProject(context,form){
       await ProjectApi.createProject(form).then(res=>{
-        context.commit('setProject',res.data);
+        context.commit('setProject',res.data.data);
       });
       await context.dispatch('refreshUsers');
       return 'done';
@@ -93,7 +93,7 @@ export default new Vuex.Store({
       var dir = context.getters.getProject.directory;
       if(dir!==undefined){
         return ProjectApi.getConf(dir).then(res=>{
-          context.commit('setConfig',res.data);
+          context.commit('setConfig',res.data.data);
         });
       }else{
         throw Exception("have not a project directory");

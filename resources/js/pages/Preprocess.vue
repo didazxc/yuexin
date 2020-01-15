@@ -1,8 +1,8 @@
 <template>
-  <el-row :gutter="10">
-    <el-col :sm="24" :md="12">
-      <el-card shadow="hover">
-        <el-table :data="tableData" style="width: 100%" highlight-current-row @current-change="handleCurrentChange">
+  <el-row :gutter="10" @keydown.down="move(index+1)" @keydown.up="move(index-1)">
+    <el-col :sm="24" :md="12" @keyup.down="move(index+1)" @keyup.up="move(index-1)">
+      <el-card shadow="hover" @keyup.down="move(index+1)" @keyup.up="move(index-1)">
+        <el-table ref="table" :data="tableData" style="width: 100%" highlight-current-row @current-change="handleCurrentChange">
           <el-table-column label="#" width="30"><i slot-scope="scope" >{{scope.$index}}</i></el-table-column>
           <el-table-column prop="name" label="Name"/>
           <el-table-column prop="df" label="DF"/>
@@ -78,6 +78,7 @@
     data(){
       return {
         currentRow:null,
+        index:0,
         tableData:[],
         src:{'Movies':'','trace':'','MotionCor':'','CTF':''},
         options:{
@@ -105,28 +106,42 @@
     },
     methods:{
       handleCurrentChange(val){
+        for(var i=0;i<this.tableData.length;i++){
+          if(this.tableData[i]===val){
+            this.index=i;
+          }
+        }
         this.currentRow = val;
         this.src['Movies']='';
         this.src['trace']='';
         this.src['MotionCor']='';
         this.src['CTF']='';
-        projectAPI.getPng('Movies',val.name,'mrc').then(res=>{this.src['Movies']=res.data;});
-        projectAPI.getPng('MotionCor',val.name,'aln').then(res=>{this.src['trace']=res.data;});
-        projectAPI.getPng('MotionCor',val.name,'mrc').then(res=>{this.src['MotionCor']=res.data;});
-        projectAPI.getPng('CTF',val.name,'ctf').then(res=>{this.src['CTF']=res.data;});
+        projectAPI.getPng('Movies',val.name,'mrc').then(res=>{this.src['Movies']=res.data.data;});
+        projectAPI.getPng('MotionCor',val.name,'aln').then(res=>{this.src['trace']=res.data.data;});
+        projectAPI.getPng('MotionCor',val.name,'mrc').then(res=>{this.src['MotionCor']=res.data.data;});
+        projectAPI.getPng('CTF',val.name,'ctf').then(res=>{this.src['CTF']=res.data.data;});
       },
       mark(val){
         //sudo 提交
         this.currentRow.mark=val;
+      },
+      move(index){
+        if(index>=0 && index<this.tableData.length) {
+          this.index = index;
+          this.$refs.table.setCurrentRow(this.tableData[index]);
+        }
       }
     },
     mounted() {
       //更新tableData
       projectAPI.preprocess().then(res => {
         this.tableData.splice(0, this.tableData.length);
-        res.data.forEach((item, index, array) => {
+        res.data.data.forEach((item, index, array) => {
           this.tableData.push(item)
         });
+        if(this.tableData.length){
+          this.$refs.table.setCurrentRow(this.tableData[this.index]);
+        }
       });
     }
   }

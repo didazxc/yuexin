@@ -6,19 +6,22 @@
         <template slot="header">
           Movie
         </template>
-        <imgInTableCell slot-scope="scope" :name="scope.row.name" module="Movies"/>
+        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" module="Movies"/>
+        <span v-else>{{scope.row.name}}</span>
       </el-table-column>
       <el-table-column>
         <template slot="header">
           <el-button @click="openConfForm('MotionCor')">Motion-corr R</el-button>
         </template>
-        <imgInTableCell slot-scope="scope" :name="scope.row.name" module="MotionCor"/>
+        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" module="MotionCor"/>
+        <span v-else>{{scope.row['MotionCor']?(scope.row.name+'.mrc'):'执行中...'}}</span>
       </el-table-column>
       <el-table-column>
         <template slot="header">
           <el-button @click="openConfForm('CTF')">CTF R</el-button>
         </template>
-        <imgInTableCell slot-scope="scope" :name="scope.row.name" ext="ctf" module="CTF"/>
+        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" ext="ctf" module="CTF"/>
+        <span v-else>{{scope.row['Extract']?(scope.row.name+'.ctf'):'执行中...'}}</span>
       </el-table-column>
       <el-table-column>
         <template slot="header">
@@ -41,7 +44,8 @@
         <template slot="header">
           Extract R
         </template>
-        <imgInTableCell slot-scope="scope" :name="scope.row.name" ext="ctf" module="CTF"/>
+        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" ext="ctf" module="CTF"/>
+        <span v-else>{{scope.row['Extract']?(scope.row.name+'.ctf'):'执行中...'}}</span>
       </el-table-column>
     </el-table>
     <div class="tool-box">
@@ -106,7 +110,7 @@
       //更新files
       projectAPI.overview().then(res => {
         this.files.splice(0, this.files.length);
-        res.data.forEach((item, index, array) => {
+        res.data.data.forEach((item, index, array) => {
           this.files.push(item)
         });
       });

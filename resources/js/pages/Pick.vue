@@ -36,10 +36,10 @@
     methods:{
       handleCurrentChange(val){
         projectAPI.getPng('MotionCor',val.name,'mrc').then(res=>{
-          this.imgsrc = res.data;
+          this.imgsrc = res.data.data;
         });
         projectAPI.getMark(val.name).then(res=>{
-          this.star = res.data;
+          this.star = res.data.data;
         });
       }
     },
@@ -47,7 +47,7 @@
       //更新tableData
       projectAPI.pick().then(res => {
         this.tableData.splice(0, this.tableData.length);
-        res.data.forEach((item, index, array) => {
+        res.data.data.forEach((item, index, array) => {
           this.tableData.push(item)
         });
       });

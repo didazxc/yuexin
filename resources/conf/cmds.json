@@ -3,7 +3,7 @@
   "MotionCor": {
     "MotionCor2": {
       "cmd_before": "mkdir MotionCor",
-      "cmd_after": "",
+      "cmd_after": "python $app_dir/mrc2png.py MotionCor/$name.mrc;python $app_dir/aln2png.py MotionCor/$name.aln",
       "cmd": "$app_dir/MotionCor2_1.3.0-Cuda101",
       "args": [
         {"name":"-InMrc","title":"InMrc","type":"string","value":"Movies/$name.mrc"},
@@ -40,7 +40,7 @@
   "CTF": {
     "Gctf": {
       "cmd_before": "mkdir CTF;ln MotionCor/$name.mrc CTF/$name.mrc",
-      "cmd_after": "",
+      "cmd_after": "python $app_dir/mrc2png.py CTF/$name.ctf",
       "cmd": "$app_dir/GCTF_v1.18_sm75_cu10.1",
       "args": [
         {"name":"--apix","title":"apix","type":"float","value": "1.5"},

@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Controllers\API\v1;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\API\Controller;
 use App\Http\Services\Image;
 use App\Http\Services\ProjectFile;
 use App\Models\Project;
@@ -21,8 +21,9 @@ class ProjectController extends Controller
             'ssd_directory'=>$project_dir,
             'args'=>$form['map'],
         ]);
-        ProjectFile::initConf($project_dir);
-        return $project;
+        $raw_root=$request->input('importProjectDir','');
+        ProjectFile::initConf($project_dir,$raw_root);
+        return $this->response($project);
     }
 
     public function png(Request $request){
@@ -31,44 +32,47 @@ class ProjectController extends Controller
         $module=$request->input("module");
         $name=$request->input("name");
         $ext=$request->input("ext");
-        return ProjectFile::png($project_dir,$module,$name,$ext);
+        $png=ProjectFile::png($project_dir,$module,$name,$ext);
+        return $this->response($png);
     }
 
     public function clear(Request $request){
         $request->validate(['projectDir'=>'required']);
         $project_dir=$request->input('projectDir');
         ProjectFile::clear($project_dir);
+        return $this->response('done');
     }
 
     /**
      * @param Request $request
-     * @return \Illuminate\Support\Collection ['Movies','MotionCor','CTF','Mark','Pick','Extract']
+     * @return \Illuminate\Http\JsonResponse
      */
     public function overview(Request $request){
         $request->validate(['projectDir'=>'required']);
         $project_dir=$request->input('projectDir');
         $files = ProjectFile::imgFiles($project_dir,"Movies");
+        //对img作缓存
         //整合MotionCor和CTF模块
         $res=$files->map(function($it)use($project_dir){
             $name=$it['name'];
             $item=[];
             $item['name']=$name;
             $item['Movies']=$it['path'];
-            $item['MotionCor']=$project_dir.'/MotionCor/'.$name.'.mrc';
-            $item['CTF']=$project_dir.'/CTF/'.$name.'.ctf';
+            $item['MotionCor']=ProjectFile::existPng($project_dir,'MotionCor',$name,'mrc');
+            $item['CTF']=ProjectFile::existPng($project_dir,'CTF',$name,'ctf');
             $item['Mark']='good';
             $item['Pick']=1000;
-            $item['Extract']=$project_dir.'/CTF/'.$name.'.ctf';
+            $item['Extract']=ProjectFile::existPng($project_dir,'CTF',$name,'ctf');
             return $item;
-        });
-        return $res;
+        })->values()->toArray();
+        return $this->response($res);
     }
 
     public function getConf(Request $request){
         $request->validate(['projectDir'=>'required']);
         $project_dir=$request->input('projectDir');
         ProjectFile::initConf($project_dir);
-        return ProjectFile::getCmds($project_dir);
+        return $this->response(ProjectFile::getCmds($project_dir));
     }
 
     public function setConf(Request $request){
@@ -76,7 +80,7 @@ class ProjectController extends Controller
         $project_dir=$request->input('projectDir');
         $conf_arr=$request->input('conf');
         ProjectFile::setCmds($project_dir,$conf_arr);
-        return 'done';
+        return $this->response('done');
     }
 
     public function runTest(Request $request){
@@ -88,7 +92,7 @@ class ProjectController extends Controller
         } catch (FileNotFoundException $e) {
             abort(405,"找不到命令配置文件");
         }
-        return trim(shell_exec("$cmd 2>&1"));
+        return $this->response(trim(shell_exec("$cmd 2>&1")));
     }
 
     public function preprocess(Request $request){
@@ -110,8 +114,8 @@ class ProjectController extends Controller
             $item['src']['CTF']=$project_dir.'/CTF/'.$name.'.ctf';
 
             return $item;
-        });
-        return $res;
+        })->values()->toArray();
+        return $this->response($res);
     }
 
     public function pick(Request $request){
@@ -132,14 +136,15 @@ class ProjectController extends Controller
 
             return $item;
         });
-        return $res;
+        return $this->response($res);
     }
 
     public function getMark(Request $request){
         $request->validate(['projectDir'=>'required','name'=>'required']);
         $project_dir=$request->input('projectDir');
         $name=$request->input("name");
-        return Image::getStar($project_dir.'/Mark/'.$name.'_automatch.star');
+        $res = ProjectFile::getStar($project_dir.'/Mark/'.$name.'_automatch.star');
+        return $this->response($res);
     }
 
     public function setMark(Request $request){
@@ -147,8 +152,8 @@ class ProjectController extends Controller
         $project_dir=$request->input('projectDir');
         $name=$request->input("name");
         $arr=$request->input("arr");
-        Image::saveStar($project_dir.'/Mark/'.$name.'.star',$arr);
-        return 'done';
+        ProjectFile::saveStar($project_dir.'/Mark/'.$name.'.star',$arr);
+        return $this->response('done');
     }
 
 }

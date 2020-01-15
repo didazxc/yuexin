@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Storage;
 
 class Image
 {
-    static public function mrc2Png($filePath,$outFilePath){
+    static private function mrc2Png($filePath,$outFilePath){
         $fh = fopen($filePath, "rb");
         $head=unpack('LNX/LNY/LNZ/LMODE',fread($fh, 1024));
         $nx = $head['NX'];
@@ -151,7 +151,7 @@ class Image
         return $res;
     }
 
-    static public function motion2Png($filePath,$outFilePath){
+    static private function motion2Png($filePath,$outFilePath){
         $data=Image::getAlnData($filePath);
         //图片大小
         $nX=$data['setting']['stackSize'][1];
@@ -214,72 +214,6 @@ class Image
             return 'data:image/png;charset=utf-8;base64,'.base64_encode($image_data);*/
         }
         //return "";
-    }
-
-    static public function lowPassPngStr($filePath){
-        return '';
-    }
-
-    static public function contrastPngStr($filePath){
-        return '';
-    }
-
-    /**
-     * 获取star文件中的数据
-     * @param string $filePath
-     * @return array
-     */
-    static public function getStar(string $filePath){
-        $fp = fopen($filePath,"r");
-        $block_step = "";
-        $colNames=[];
-        $colNum=0;
-        $res=[];
-        while(!feof($fp)){
-            $line=trim(fgets($fp));
-            $arr=preg_split("/\s+/",$line);
-            if($line=="loop_"){
-                $block_step=$line;
-            }else if($block_step=="loop_"){
-                if(sizeof($arr)==2 && substr($arr[0],0,4)=='_rln'){
-                    $colNames[]=$arr[0];
-                }else{
-                    $block_step="loop_data_";
-                    $colNum=sizeof($colNames);
-                }
-            }else if($block_step=="loop_data_"){
-                if(sizeof($arr)==$colNum)$res[]=array_combine($colNames,$arr);
-            }
-        }
-        fclose($fp);
-        return $res;
-    }
-
-    /**
-     * 将数组保存为star格式
-     * @param string $filePath
-     * @param array $json_arr
-     * @return bool
-     */
-    static public function saveStar(string $filePath, array $json_arr)
-    {
-        if(sizeof($json_arr)>0){
-            $names=array_keys($json_arr[0]);
-            $arr=array_map(function($point)use($names){
-                $values=array_map(function($name)use($point){
-                    if(array_key_exists($name, $point)){
-                        return $point[$name];
-                    }
-                    return "";
-                },$names);
-                return implode(" ", $values);
-            },$json_arr);
-            $content = implode("\n", $arr);
-            array_walk($names,function(&$name,$k){$name.=" #".($k+1);});
-            $header= "loop_\n".implode("\n", $names)."\n";
-            Storage::disk('root')->put($filePath,$header.$content);
-        }
-        return true;
     }
 
 }
