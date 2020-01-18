@@ -6,7 +6,7 @@
         <template slot="header">
           Movie
         </template>
-        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" module="Movies"/>
+        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" :status="scope.row['Movies']?'加载中...':scope.row.name" module="Movies"/>
         <span v-else>{{scope.row.name}}</span>
       </el-table-column>
       <el-table-column>
@@ -15,8 +15,8 @@
           <el-button @click="openConfForm('MotionCor')">Motion-corr R</el-button>
           </el-checkbox>
         </template>
-        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" module="MotionCor"/>
-        <span v-else>{{scope.row['MotionCor']?(scope.row.name+'.mrc'):'执行中...'}}</span>
+        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" :status="scope.row['MotionCor']===null?'未开始':scope.row['MotionCor']" module="MotionCor"/>
+        <span v-else>{{scope.row['MotionCor']===null?'未开始':scope.row['MotionCor']}}</span>
       </el-table-column>
       <el-table-column>
         <template slot="header">
@@ -24,8 +24,8 @@
           <el-button @click="openConfForm('CTF')">CTF R</el-button>
           </el-checkbox>
         </template>
-        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" ext="ctf" module="CTF"/>
-        <span v-else>{{scope.row['Extract']?(scope.row.name+'.ctf'):'执行中...'}}</span>
+        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" :status="scope.row['CTF']===null?'未开始':scope.row['CTF']" ext="ctf" module="CTF"/>
+        <span v-else>{{scope.row['CTF']===null?'未开始':scope.row['CTF']}}</span>
       </el-table-column>
       <el-table-column>
         <template slot="header">
@@ -50,13 +50,14 @@
         <template slot="header">
           Extract R
         </template>
-        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" ext="ctf" module="CTF"/>
-        <span v-else>{{scope.row['Extract']?(scope.row.name+'.ctf'):'执行中...'}}</span>
+        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" :status="scope.row['Extract']" ext="ctf" module="CTF"/>
+        <span v-else>{{scope.row['Extract']}}</span>
       </el-table-column>
     </el-table>
     <div class="tool-box">
       <el-button type="primary" size="small" @click="test" v-loading="testLoading">TEST</el-button>
-      <el-button type="danger" size="small">RUN ALL</el-button>
+      <el-button type="success" size="small">RUN ALL</el-button>
+      <el-button type="danger" size="small" @click="clear" v-loading="clearLoading">CLEAR</el-button>
     </div>
     <el-dialog title="参数设置" :visible.sync="dialogVisible" width="80%">
       <confView :forms="forms[step]" :module.sync="forms['_current'][step]"/>
@@ -80,6 +81,7 @@
     },
     data() {
       return {
+        timer:null,
         MotionCorChecked:true,
         CTFChecked:true,
         PickChecked:true,
@@ -88,6 +90,7 @@
         forms:JSON.parse(JSON.stringify(this.$store.getters.getConfig)),
         step:'',
         testLoading:false,
+        clearLoading:false,
       }
     },
     computed:{
@@ -126,6 +129,14 @@
       }
     },
     methods: {
+      updateFiles(){
+        projectAPI.overview().then(res => {
+          this.files.splice(0, this.files.length);
+          res.data.data.forEach((item, index, array) => {
+            this.files.push(item)
+          });
+        });
+      },
       openConfForm(step) {
         this.step=step;
         this.dialogVisible=true;
@@ -141,31 +152,51 @@
       test(){
         if(this.files.length>0){
           this.testLoading=true;
-          projectAPI.test(this.modules,[this.files[0]['name']]).then(res=>{
+          var names=this.files.slice(0,5).map(f=>f['name']);
+          projectAPI.test(this.modules,names).then(res=>{
             this.testLoading=false;
           }).catch(res=>{
             this.testLoading=false;
           });
+          this.updateFiles();
         }
+      },
+      clear(){
+        this.clearLoading=true;
+        this.$confirm('此操作将永久删除文件, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(()=>{
+          projectAPI.clear().then(res=>{
+            this.$message({
+              type: 'success',
+              message: '删除成功!'
+            });
+            this.updateFiles();
+            this.clearLoading=false;
+          }).catch(res=>{
+            this.clearLoading=false;
+          });
+        }).catch(()=>{
+          this.clearLoading=false;
+        });
       }
     },
     mounted() {
-      //更新files
-      projectAPI.overview().then(res => {
-        this.files.splice(0, this.files.length);
-        res.data.data.forEach((item, index, array) => {
-          this.files.push(item)
-        });
-      });
+      this.updateFiles();
+      //20s更新一次files
+      this.timer=setInterval(this.updateFiles,10000);
+    },
+    beforeDestroy() {
+      clearInterval(this.timer);
     }
   }
 </script>
 
 <style scoped>
-
   .tool-box {
     float: right;
     margin: 10px;
   }
-
 </style>

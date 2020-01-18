@@ -1,5 +1,10 @@
 {
   "_current":{"MotionCor":"MotionCor2","CTF":"Gctf","Pick":"Non-AI:Gautomatch"},
+  "Movies":{
+    "default":{
+      "cmd": "python3 $app_dir/mrc2png.py Movies/$name.mrc"
+    }
+  },
   "MotionCor": {
     "MotionCor2": {
       "cmd_before": "mkdir MotionCor",

@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Http\Services\Task;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
@@ -40,7 +39,7 @@ class AppServiceProvider extends ServiceProvider
             //创建结束标识文件
             if($event->job->getQueue()=='yx' && $event->job->resolveName()== 'App\Jobs\ProjectShell'){
                 $cmd = unserialize($event->job->payload()['data']['command']);
-                $cmd->fater();
+                $cmd->after();
             }
         });
 

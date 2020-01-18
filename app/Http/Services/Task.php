@@ -19,6 +19,13 @@ class Task
     const NONE='none';
 
     const TaskStatus=[self::QUEUE,self::RUNNING,self::FINISHED,self::RETRY,self::FAILED];
+    const TaskStatusTitle=[
+        self::QUEUE=>'排队执行...',
+        self::RUNNING=>'运行中...',
+        self::FINISHED=>'执行完毕',
+        self::RETRY=>'排队重试...',
+        self::FAILED=>'失败'
+    ];
 
     static public function getSingleTaskStatus($project_dir,$module,$name){
         foreach(self::TaskStatus as $s){
@@ -50,9 +57,19 @@ class Task
         $dir=$project_dir.ProjectFile::ConfTaskDir.'/'.$module;
         $raw_list = Storage::disk(ProjectFile::Disk)->files($dir);
         $files=collect($raw_list)->map(function($item){
-            $file_name=pathinfo($item,PATHINFO_FILENAME);
-            $arr=explode('_',$file_name);
+            $file_name=pathinfo($item,PATHINFO_BASENAME);
+            $arr=explode('_',$file_name,2);
             return ['status'=>$arr[0],'name'=>$arr[1]];
+        });
+        return $files;
+    }
+    static public function getTaskStatusForView($project_dir,$module){
+        $files=self::getTaskStatus($project_dir,$module)->map(function($item){
+            $status=$item['status'];
+            if(array_key_exists($status,self::TaskStatusTitle)){
+                $status=self::TaskStatusTitle[$status];
+            }
+            return ['status'=>$status,'name'=>$item['name']];
         });
         return $files;
     }
@@ -64,7 +81,7 @@ class Task
      * @param $name
      * @return string
      */
-    static public function run($project_dir,$modules,$name){
+    static public function run($project_dir,array $modules,$name){
         //获取命令
         $cmds=[];
         try {
@@ -89,8 +106,8 @@ class Task
         return 'done';
     }
 
-    static public function runAll($project_dir,$modules){
-        //todo:开启常驻进程，定时执行run
+    static public function runAll($project_dir,array $modules){
+        //todo:开启常驻进程，定时执行run，并增加停止在继续等功能
         $names = ProjectFile::imgFiles($project_dir,"Movies")->select("name");
         foreach($names as $name){
             self::run($project_dir,$modules,$name);

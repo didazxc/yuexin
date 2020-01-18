@@ -197,13 +197,25 @@ class ProjectFile
      */
     static public function getCmd($project_dir,$module,$name){
         $cmds = self::getParsedCmds($project_dir, $name);
-        $func = $cmds['_current'][$module];
-        $cmd=$cmds[$module][$func];
-        $str = trim($cmd['cmd_before'],';').";".trim($cmd['cmd'],';');
-        foreach($cmd['args'] as $v){
-            $str.=" ${v['name']} ${v['value']} ";
+        if(array_key_exists($module,$cmds['_current'])){
+            $func = $cmds['_current'][$module];
+        }else{
+            $func = array_keys($cmds[$module])[0];
         }
-        $cmd_str="cd $project_dir;".trim($str,';').";".trim($cmd['cmd_after'],';');
+        $cmd=$cmds[$module][$func];
+        $str = trim($cmd['cmd'],';');
+        if(array_key_exists('args',$cmd)) {
+            foreach ($cmd['args'] as $v) {
+                $str .= " ${v['name']} ${v['value']} ";
+            }
+        }
+        if(array_key_exists('cmd_before',$cmd)){
+            $str=trim($cmd['cmd_before'],';').';'.$str;
+        }
+        if(array_key_exists('cmd_after',$cmd)){
+            $str=trim($str,';').';'.trim($cmd['cmd_after'],';');
+        }
+        $cmd_str="cd $project_dir;$str";
         return $cmd_str;
     }
 
