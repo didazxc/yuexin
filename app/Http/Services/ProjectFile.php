@@ -62,12 +62,13 @@ class ProjectFile
                 $block_step=$line;
             }else if($block_step=="loop_"){
                 if(sizeof($arr)==2 && substr($arr[0],0,4)=='_rln'){
-                    $colNames[]=$arr[0];
+                    $colNames[]=substr($arr[0],4);
                 }else{
                     $block_step="loop_data_";
                     $colNum=sizeof($colNames);
                 }
-            }else if($block_step=="loop_data_"){
+            }
+            if($block_step=="loop_data_"){
                 if(sizeof($arr)==$colNum)$res[]=array_combine($colNames,$arr);
             }
         }
@@ -89,13 +90,89 @@ class ProjectFile
                 return implode(" ", $values);
             },$json_arr);
             $content = implode("\n", $arr);
-            array_walk($names,function(&$name,$k){$name.=" #".($k+1);});
+            array_walk($names,function(&$name,$k){$name="_rln$name #".($k+1);});
             $header= "loop_\n".implode("\n", $names)."\n";
             Storage::disk('root')->put($filePath,$header.$content);
         }
         return true;
     }
 
+    static private function getMotionShiftFromAln(string $filePath){
+        $data=[];
+        $fp = fopen($filePath,"r");
+        $mod='';
+        //$stack=0;
+        while(!feof($fp)) {
+            $raw_line = fgets($fp);
+            $line = trim($raw_line);
+            if($raw_line[0]!=' '){$mod=$line=='globalShift'?'globalShift':'';}
+            if($mod=='globalShift'){
+                $arr=preg_split('/\s+/',$line);
+                //if($arr[0]='stackID'){$stack=intval($arr[1]);$data[$stack]=[];}
+                if(count($arr)==3){
+                    $data[]=['x'=>floatval($arr[1]),'y'=>floatval($arr[2])];
+                }
+            }
+        }
+        fclose($fp);
+        //计算
+        $cnt=count($data);
+        if($cnt){
+            $avg_x=0;
+            $avg_y=0;
+            foreach ($data as $d){
+                $avg_x+=$d['x'];
+                $avg_y+=$d['y'];
+            }
+            $avg_x=$avg_x/$cnt;
+            $avg_y=$avg_y/$cnt;
+            $pow_x=0;
+            $pow_y=0;
+            foreach ($data as $d){
+                $pow_x+=pow($d['x']-$avg_x,2);
+                $pow_y+=pow($d['y']-$avg_y,2);
+            }
+            $pow_x=$pow_x/$cnt;
+            $pow_y=$pow_y/$cnt;
+            return ($pow_x+$pow_y)/2;
+        }
+        return 0;
+    }
+
+    static public function combineCTFStarFiles($project_dir){
+        $raw_list = Storage::disk(self::Disk)->files($project_dir.'/CTF');
+        $files=collect($raw_list)->filter(function($path){
+            $arr=explode('_',pathinfo($path,PATHINFO_BASENAME));
+            return array_pop($arr)=='gctf.star';
+        });
+        if($files->count()){
+            $save_path=$project_dir.'/CTF/ctf.star';
+            $stars=$files->map(function($path)use($project_dir){
+                $name=pathinfo($path,PATHINFO_FILENAME);
+                $name=substr($name,0,strrpos($name,'_'));
+                $star=self::getStar('/'.$path)[0];
+                $u=floatval($star['DefocusU']);
+                $v=floatval($star['DefocusV']);
+
+                $item=[];
+                $item['name']=$name;
+                $item['df']=($u+$v)/2;
+                $item['astig']=abs($u-$v);
+                $item['shift']=self::getMotionShiftFromAln("$project_dir/MotionCor/$name.aln");
+                $item['fit']=floatval($star['FinalResolution']);
+                $item['mark']='good';
+                $item['picks']=0;
+                return $item;
+            })->values()->toArray();
+            if(Storage::disk(self::Disk)->exists($save_path)){
+                $stars=array_merge(self::getStar($save_path),$stars);
+            }
+            self::saveStar($save_path,$stars);
+            $files->each(function($path){
+                Storage::disk(self::Disk)->delete($path);
+            });
+        }
+    }
 
     /**
      *  获取项目下特定模块的图片

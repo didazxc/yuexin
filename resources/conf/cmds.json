@@ -54,7 +54,8 @@
         {"name":"--ac","title":"ac","type":"float","value": "0.1"},
         {"name":"--do_unfinished","title":"int","type":"string","value": "1"},
         {"name":"--gid","title":"gid","type":"int","value": "3"},
-        {"name":"","title":"输入文件","type":"string","value": "CTF/$name.mrc"}
+        {"name":"--ctfstar","title":"ctfstar","type":"hidden","value":"CTF/${name}_gctf.star"},
+        {"name":"","title":"输入文件","type":"string","value":"CTF/$name.mrc"}
       ]
     },
     "CTFFIND": {
@@ -74,43 +75,43 @@
   },
   "Pick": {
     "Non-AI:Gautomatch": {
-      "cmd_before": "mkdir Mark;ln CTF/$name.mrc Mark/$name.mrc",
+      "cmd_before": "mkdir Pick;ln CTF/$name.mrc Pick/$name.mrc",
       "cmd_after": "",
       "cmd": "$app_dir/Gautomatch_v0.56_sm30-75_cu10.1",
       "args": [
         {"name":"--apixM","title":"apixM","type":"float","value": "1.5"},
         {"name":"--diameter","title":"diameter","type":"int","value": "120"},
-        {"name":"","title":"输入文件","type":"string","value": "Mark/$name.mrc"}
+        {"name":"","title":"输入文件","type":"string","value": "Pick/$name.mrc"}
       ]
     },
     "Non-AI:RELION": {
-      "cmd_before": "mkdir Mark;ln CTF/$name.mrc Mark/$name.mrc",
+      "cmd_before": "mkdir Pick;ln CTF/$name.mrc Pick/$name.mrc",
       "cmd_after": "",
       "cmd": "$app_dir/Gautomatch_v0.56_sm30-75_cu10.1",
       "args": [
         {"name":"--apixM","title":"apixM","type":"float","value": "1.5"},
         {"name":"--diameter","title":"diameter","type":"int","value": "120"},
-        {"name":"","title":"输入文件","type":"string","value": "Mark/$name.mrc"}
+        {"name":"","title":"输入文件","type":"string","value": "Pick/$name.mrc"}
       ]
     },
     "AI:EMAN": {
-      "cmd_before": "mkdir Mark;ln CTF/$name.mrc Mark/$name.mrc",
+      "cmd_before": "mkdir Pick;ln CTF/$name.mrc Pick/$name.mrc",
       "cmd_after": "",
       "cmd": "$app_dir/Gautomatch_v0.56_sm30-75_cu10.1",
       "args": [
         {"name":"--apixM","title":"apixM","type":"float","value": "1.5"},
         {"name":"--diameter","title":"diameter","type":"int","value": "120"},
-        {"name":"","title":"输入文件","type":"string","value": "Mark/$name.mrc"}
+        {"name":"","title":"输入文件","type":"string","value": "Pick/$name.mrc"}
       ]
     },
     "AI:crYOLO": {
-      "cmd_before": "mkdir Mark;ln CTF/$name.mrc Mark/$name.mrc",
+      "cmd_before": "mkdir Pick;ln CTF/$name.mrc Pick/$name.mrc",
       "cmd_after": "",
       "cmd": "$app_dir/Gautomatch_v0.56_sm30-75_cu10.1",
       "args": [
         {"name":"--apixM","title":"apixM","type":"float","value": "1.5"},
         {"name":"--diameter","title":"diameter","type":"int","value": "120"},
-        {"name":"","title":"输入文件","type":"string","value": "Mark/$name.mrc"}
+        {"name":"","title":"输入文件","type":"string","value": "Pick/$name.mrc"}
       ]
     },
     "AI:Topaz": {
@@ -120,7 +121,7 @@
       "args": [
         {"name":"--apixM","title":"apixM","type":"float","value": "1.5"},
         {"name":"--diameter","title":"diameter","type":"int","value": "120"},
-        {"name":"","title":"输入文件","type":"string","value": "Mark/$name.mrc"}
+        {"name":"","title":"输入文件","type":"string","value": "Pick/$name.mrc"}
       ]
     }
   }

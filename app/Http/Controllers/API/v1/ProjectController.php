@@ -127,61 +127,32 @@ class ProjectController extends Controller
     public function preprocess(Request $request){
         $request->validate(['projectDir'=>'required']);
         $project_dir=$request->input('projectDir');
-        $files = ProjectFile::imgFiles($project_dir,"Movies");
-        $res=$files->map(function($it)use($project_dir){
-            $name=$it['name'];
-            $item=[];
-            $item['name']=$name;
-            $item['df']=10;
-            $item['fit']=50;
-            $item['astig']=100;
-            $item['mark']='good';
-
-            $item['src']=[];
-            $item['src']['Movies']=$project_dir.'/Movies/'.$name.'.mrc';
-            $item['src']['MotionCor']=$project_dir.'/MotionCor/'.$name.'.mrc';
-            $item['src']['CTF']=$project_dir.'/CTF/'.$name.'.ctf';
-
-            return $item;
-        })->values()->toArray();
-        return $this->response($res);
+        ProjectFile::combineCTFStarFiles($project_dir);
+        $star = ProjectFile::getStar("$project_dir/CTF/ctf.star");
+        return $this->response($star);
     }
 
     public function pick(Request $request){
         $request->validate(['projectDir'=>'required']);
         $project_dir=$request->input('projectDir');
-        $files = ProjectFile::imgFiles($project_dir,"Movies");
-        $res=$files->map(function($it)use($project_dir){
-            $name=$it['name'];
-            $item=[];
-            $item['name']=$name;
-            $item['df']=10;
-            $item['fit']=50;
-            $item['astig']=100;
-            $item['mark']='good';
-            $item['picks']=200;
-
-            $item['src']=$project_dir.'/MotionCor/'.$name.'.mrc';
-
-            return $item;
-        });
-        return $this->response($res);
+        $star = ProjectFile::getStar("$project_dir/CTF/ctf.star");
+        return $this->response($star);
     }
 
-    public function getMark(Request $request){
+    public function getPick(Request $request){
         $request->validate(['projectDir'=>'required','name'=>'required']);
         $project_dir=$request->input('projectDir');
         $name=$request->input("name");
-        $res = ProjectFile::getStar($project_dir.'/Mark/'.$name.'_automatch.star');
+        $res = ProjectFile::getStar($project_dir.'/Pick/'.$name.'_automatch.star');
         return $this->response($res);
     }
 
-    public function setMark(Request $request){
+    public function setPick(Request $request){
         $request->validate(['projectDir'=>'required','name'=>'required','arr'=>'required|array']);
         $project_dir=$request->input('projectDir');
         $name=$request->input("name");
         $arr=$request->input("arr");
-        ProjectFile::saveStar($project_dir.'/Mark/'.$name.'.star',$arr);
+        ProjectFile::saveStar($project_dir.'/Pick/'.$name.'.star',$arr);
         return $this->response('done');
     }
 

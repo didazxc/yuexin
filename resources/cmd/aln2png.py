@@ -52,9 +52,9 @@ img = Image.new("RGB",(nX,nY),"white")
 draw = ImageDraw.Draw(img)
 #cell
 for row in range(gridX+1):
-    draw.line([(row*gridXL,0),(row*gridXL,nY)],fill=(205,205,205),width=2)
+    draw.line([(row*gridXL,0),(row*gridXL,nY)],fill=(205,205,205),width=4)
 for col in range(gridY+1):
-    draw.line([(0,col*gridYL),(nX,col*gridYL)],fill=(205,205,205),width=2)
+    draw.line([(0,col*gridYL),(nX,col*gridYL)],fill=(205,205,205),width=4)
 #center
 cX=nX/2
 cY=nY/2
@@ -64,3 +64,5 @@ for vv in res['localShift'].values():
     draw.line([(float(v[1])+float(v[3]),float(v[2])+float(v[4])) for v in vv.values()],fill=(0,0,255),width=2)
 
 img.save(args.filePath+".png")
+
+#save globalShift

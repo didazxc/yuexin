@@ -2,8 +2,8 @@
   <el-row :gutter="10">
     <el-col :sm="24" :md="12">
       <el-card shadow="hover">
-        <el-table :data="tableData" style="width: 100%" highlight-current-row @current-change="handleCurrentChange">
-          <el-table-column label="#" width="30"><i slot-scope="scope">{{scope.$index}}</i></el-table-column>
+        <el-table height="500" :data="tableData" style="width: 100%" highlight-current-row @current-change="handleCurrentChange">
+          <el-table-column label="#" width="60"><i slot-scope="scope">{{scope.$index}}</i></el-table-column>
           <el-table-column prop="name" label="Name"/>
           <el-table-column prop="df" label="DF"/>
           <el-table-column prop="fit" label="CTF fit"/>

@@ -2,8 +2,8 @@
   <el-row :gutter="10" @keydown.down="move(index+1)" @keydown.up="move(index-1)">
     <el-col :sm="24" :md="12" @keyup.down="move(index+1)" @keyup.up="move(index-1)">
       <el-card shadow="hover" @keyup.down="move(index+1)" @keyup.up="move(index-1)">
-        <el-table ref="table" :data="tableData" style="width: 100%" highlight-current-row @current-change="handleCurrentChange">
-          <el-table-column label="#" width="30"><i slot-scope="scope" >{{scope.$index}}</i></el-table-column>
+        <el-table ref="table" height="500" :data="tableData" style="width: 100%" highlight-current-row @current-change="handleCurrentChange">
+          <el-table-column label="#" width="60"><i slot-scope="scope" >{{scope.$index}}</i></el-table-column>
           <el-table-column prop="name" label="Name"/>
           <el-table-column prop="df" label="DF"/>
           <el-table-column prop="fit" label="CTF fit"/>
@@ -24,7 +24,7 @@
           <el-tab-pane label="预览">
             <el-row :gutter="10">
               <el-col :sm="24" :md="12">
-                <el-image :src="src['Movies']" fit="fill"
+                <el-image :src="src['Movies']" fit="contain"
                           :preview-src-list="[src['Movies']]">
                   <div slot="placeholder" class="image-slot">
                     加载中<span class="dot">...</span>
@@ -32,7 +32,7 @@
                 </el-image>
               </el-col>
               <el-col :sm="24" :md="12">
-                <el-image :src="src['trace']" fit="fill"
+                <el-image :src="src['trace']" fit="contain"
                           :preview-src-list="[src['trace']]">
                   <div slot="placeholder" class="image-slot">
                     加载中<span class="dot">...</span>
@@ -42,7 +42,7 @@
             </el-row >
             <el-row :gutter="10">
               <el-col :sm="24" :md="12">
-                <el-image :src="src['MotionCor']" fit="fill"
+                <el-image :src="src['MotionCor']" fit="contain"
                           :preview-src-list="[src['MotionCor']]">
                   <div slot="placeholder" class="image-slot">
                     加载中<span class="dot">...</span>
@@ -50,7 +50,7 @@
                 </el-image>
               </el-col>
               <el-col :sm="24" :md="12">
-                <el-image :src="src['CTF']" fit="fill"
+                <el-image :src="src['CTF']" fit="contain"
                           :preview-src-list="[src['CTF']]">
                   <div slot="placeholder" class="image-slot">
                     加载中<span class="dot">...</span>
@@ -122,7 +122,7 @@
         projectAPI.getPng('CTF',val.name,'ctf').then(res=>{this.src['CTF']=res.data.data;});
       },
       mark(val){
-        //sudo 提交
+        //todo 提交
         this.currentRow.mark=val;
       },
       move(index){
@@ -155,5 +155,6 @@
   .el-image{
     height:100%;
     width:100%;
+    border:#ccc solid 1px;
   }
 </style>
