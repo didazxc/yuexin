@@ -3,7 +3,11 @@ namespace App\Http\Controllers\API\v1;
 
 use App\Http\Controllers\API\Controller;
 use App\Http\Services\Image;
+use App\Http\Services\Module;
 use App\Http\Services\ProjectFile;
+use App\Http\Services\Task;
+use App\Jobs\ProjectShell;
+use App\Jobs\Shell;
 use App\Models\Project;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
@@ -84,15 +88,28 @@ class ProjectController extends Controller
     }
 
     public function runTest(Request $request){
-        $request->validate(['projectDir'=>'required','name'=>'required']);
+        $request->validate(['projectDir'=>'required','modules'=>'required','names'=>'required|array']);
         $project_dir=$request->input('projectDir');
-        $name=$request->input("name");
-        try {
-            $cmd = ProjectFile::getTestCmd($project_dir, $name);
-        } catch (FileNotFoundException $e) {
-            abort(405,"找不到命令配置文件");
+        $names=$request->input("names");
+        $modules=$request->input("modules");
+        //判断顺序
+        $m_len=count(Module::Modules);
+        $index=0;
+        foreach ($modules as $mod){
+            for($i=$index;$i<$m_len;$i++){
+                if(Module::Modules[$i]==$mod)break;
+            }
+            $index=$i;
         }
-        return $this->response(trim(shell_exec("$cmd 2>&1")));
+        if($index==$m_len){
+            return $this->response('failed',503,'modules should been in order');
+        }
+        //执行命令
+        ProjectFile::clear($project_dir,$modules);
+        foreach($names as $name){
+            Task::run($project_dir,$modules,$name);
+        }
+        return $this->response('done');
     }
 
     public function preprocess(Request $request){

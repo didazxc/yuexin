@@ -1,6 +1,6 @@
 <template>
   <el-card shadow="hover">
-    <el-table :data="files" style="width: 100%" :header-cell-style="{'text-align':'center'}"
+    <el-table height="500" :data="files" style="width: 100%" :header-cell-style="{'text-align':'center'}"
               :cell-style="{'text-align':'center'}">
       <el-table-column>
         <template slot="header">
@@ -11,14 +11,18 @@
       </el-table-column>
       <el-table-column>
         <template slot="header">
+          <el-checkbox v-model="MotionCorChecked">
           <el-button @click="openConfForm('MotionCor')">Motion-corr R</el-button>
+          </el-checkbox>
         </template>
         <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" module="MotionCor"/>
         <span v-else>{{scope.row['MotionCor']?(scope.row.name+'.mrc'):'执行中...'}}</span>
       </el-table-column>
       <el-table-column>
         <template slot="header">
+          <el-checkbox v-model="CTFChecked">
           <el-button @click="openConfForm('CTF')">CTF R</el-button>
+          </el-checkbox>
         </template>
         <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" ext="ctf" module="CTF"/>
         <span v-else>{{scope.row['Extract']?(scope.row.name+'.ctf'):'执行中...'}}</span>
@@ -36,7 +40,9 @@
       </el-table-column>
       <el-table-column>
         <template slot="header">
+          <el-checkbox v-model="PickChecked">
           <el-button @click="openConfForm('Pick')">Pick</el-button>
+          </el-checkbox>
         </template>
         <el-tag type="primary" disable-transitions>1000</el-tag>
       </el-table-column>
@@ -51,7 +57,6 @@
     <div class="tool-box">
       <el-button type="primary" size="small" @click="test" v-loading="testLoading">TEST</el-button>
       <el-button type="danger" size="small">RUN ALL</el-button>
-      <el-button type="success" size="small">SAVE</el-button>
     </div>
     <el-dialog title="参数设置" :visible.sync="dialogVisible" width="80%">
       <confView :forms="forms[step]" :module.sync="forms['_current'][step]"/>
@@ -75,11 +80,49 @@
     },
     data() {
       return {
+        MotionCorChecked:true,
+        CTFChecked:true,
+        PickChecked:true,
         files: [],
         dialogVisible: false,
         forms:JSON.parse(JSON.stringify(this.$store.getters.getConfig)),
         step:'',
         testLoading:false,
+      }
+    },
+    computed:{
+      modules(){
+        var modules=['MotionCor','CTF','Pick'];
+        var step=0;
+        if(this.PickChecked){
+          step=3;
+        }else if(this.CTFChecked){
+          step=2;
+        }else if(this.MotionCorChecked){
+          step=1;
+        }
+        return modules.slice(0,step);
+      }
+    },
+    watch:{
+      MotionCorChecked(val){
+        if(!val){
+          this.CTFChecked=val;
+          this.PickChecked=val;
+        }
+      },
+      CTFChecked(val){
+        if(val){
+          this.MotionCorChecked=val;
+        }else{
+          this.PickChecked=val;
+        }
+      },
+      PickChecked(val){
+        if(val){
+          this.MotionCorChecked=val;
+          this.CTFChecked=val;
+        }
       }
     },
     methods: {
@@ -98,7 +141,7 @@
       test(){
         if(this.files.length>0){
           this.testLoading=true;
-          projectAPI.test(this.dir,this.files[0]['name']).then(res=>{
+          projectAPI.test(this.modules,[this.files[0]['name']]).then(res=>{
             this.testLoading=false;
           }).catch(res=>{
             this.testLoading=false;
@@ -119,8 +162,10 @@
 </script>
 
 <style scoped>
+
   .tool-box {
     float: right;
     margin: 10px;
   }
+
 </style>

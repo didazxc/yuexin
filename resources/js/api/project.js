@@ -30,9 +30,9 @@ export default {
     var projectDir=store.getters.getProject.directory;
     return axios.post(CONFIG.API_URL+'/project/conf',{projectDir:projectDir,conf:conf});
   },
-  test(name){
+  test(modules,names){
     var projectDir=store.getters.getProject.directory;
-    return axios.post(CONFIG.API_URL+'/project/test',{projectDir:projectDir,name:name});
+    return axios.post(CONFIG.API_URL+'/project/test',{projectDir:projectDir,modules:modules,names:names});
   },
 
   preprocess(){

@@ -3,7 +3,7 @@
   "MotionCor": {
     "MotionCor2": {
       "cmd_before": "mkdir MotionCor",
-      "cmd_after": "python $app_dir/mrc2png.py MotionCor/$name.mrc;python $app_dir/aln2png.py MotionCor/$name.aln",
+      "cmd_after": "python3 $app_dir/mrc2png.py MotionCor/$name.mrc;python3 $app_dir/aln2png.py MotionCor/$name.aln",
       "cmd": "$app_dir/MotionCor2_1.3.0-Cuda101",
       "args": [
         {"name":"-InMrc","title":"InMrc","type":"string","value":"Movies/$name.mrc"},
@@ -13,7 +13,7 @@
         {"name":"-Patch","title":"Patch","type":"string","value":"5 5"},
         {"name":"-FtBin","title":"FtBin","type":"int","value":"1"},
         {"name":"-Iter","title":"Iter","type":"int","value":"10"},
-        {"name":"-Gpu","title":"Gpu","type":"string","value":"0 1 2 3"},
+        {"name":"-Gpu","title":"Gpu","type":"string","value":"0"},
         {"name":"-Tol","title":"Tol","type":"float","value":"0.5"},
         {"name":"-OutAln","title":"OutAln","type":"hidden","value":"MotionCor"},
         {"name":"-Logfile","title":"Logfile","type":"string","value":"MotionCor/$name.log"}
@@ -40,7 +40,7 @@
   "CTF": {
     "Gctf": {
       "cmd_before": "mkdir CTF;ln MotionCor/$name.mrc CTF/$name.mrc",
-      "cmd_after": "python $app_dir/mrc2png.py CTF/$name.ctf",
+      "cmd_after": "python3 $app_dir/mrc2png.py CTF/$name.ctf",
       "cmd": "$app_dir/GCTF_v1.18_sm75_cu10.1",
       "args": [
         {"name":"--apix","title":"apix","type":"float","value": "1.5"},
@@ -109,7 +109,7 @@
       ]
     },
     "AI:Topaz": {
-      "cmd_before": "mkdir Mark;ln CTF/$name.mrc Mark/$name.mrc",
+      "cmd_before": "mkdir Pick;ln CTF/$name.mrc Pick/$name.mrc",
       "cmd_after": "",
       "cmd": "$app_dir/Gautomatch_v0.56_sm30-75_cu10.1",
       "args": [

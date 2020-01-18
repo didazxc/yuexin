@@ -11,14 +11,18 @@
 |
 */
 
-use App\Http\Services\Image;
+use App\Http\Services\ProjectFile;
 
 Route::get('/', 'Web\AppController@getApp')
 ->middleware('auth');
 
 Auth::routes(['register' => false]);
 
-Route::get('/test.png', function(){
+Route::get('/test', function(){
+    $project_dir="/media/zhangtaotao/软件/work/xinyue/test";
+    $module="MotionCor";
+    $file="/media/zhangtaotao/软件/work/xinyue/test/Movies/May08_03.05.02.bin.mrc";
+    dd(pathinfo($file));
     //Image::motionTracePng("/media/zhangtaotao/软件/work/xinyue/test/MotionCor","May08_03.05.02.bin");
 });
 
