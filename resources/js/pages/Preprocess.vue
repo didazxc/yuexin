@@ -60,7 +60,23 @@
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="统计">
-            <v-chart :options="options"/>
+            <v-chart :options="options" :autoresize="true"/>
+            <div class="block">
+              <span class="demonstration">DF</span>
+              <el-slider v-model="thresholds.df" :max="30000"/>
+            </div>
+            <div class="block">
+              <span class="demonstration">Fit</span>
+              <el-slider v-model="thresholds.fit" :max="20"/>
+            </div>
+            <div class="block">
+              <span class="demonstration">Astig</span>
+              <el-slider v-model="thresholds.astig" :max="2000"/>
+            </div>
+            <div class="block">
+              <span class="demonstration">Shift</span>
+              <el-slider v-model="thresholds.shift" :max="10"/>
+            </div>
           </el-tab-pane>
         </el-tabs>
       </el-card>
@@ -101,6 +117,12 @@
             ],
             type: 'scatter'
           }]
+        },
+        thresholds:{
+          df:0,
+          fit:0,
+          astig:0,
+          shift:0
         },
       }
     },
@@ -153,8 +175,24 @@
     margin: 10px;
   }
   .el-image{
-    height:100%;
-    width:100%;
     border:#ccc solid 1px;
+  }
+  div.block{
+    display: flex;
+    align-items:center;
+    width:96%;
+    padding:0 2%;
+  }
+  .block .demonstration{
+    width:60px;
+  }
+  .block>div{
+    flex:auto;
+  }
+  .echarts {
+    width: 100%;
+    height: 100%;
+    min-height:350px;
+    min-width:300px;
   }
 </style>
