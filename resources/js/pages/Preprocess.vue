@@ -1,7 +1,8 @@
 <template>
-  <el-row :gutter="10" @keydown.down="move(index+1)" @keydown.up="move(index-1)">
-    <el-col :sm="24" :md="12" @keyup.down="move(index+1)" @keyup.up="move(index-1)">
-      <el-card shadow="hover" @keyup.down="move(index+1)" @keyup.up="move(index-1)">
+  <div tabindex="0" @keydown.down="move(index+1)" @keydown.up="move(index-1)" style="height:100%;">
+  <el-row :gutter="10" >
+    <el-col :sm="24" :md="12">
+      <el-card shadow="hover">
         <el-table ref="table" height="500" :data="tableData" style="width: 100%" highlight-current-row @current-change="handleCurrentChange">
           <el-table-column label="#" width="60"><i slot-scope="scope" >{{scope.$index}}</i></el-table-column>
           <el-table-column prop="name" label="Name"/>
@@ -94,6 +95,7 @@
       </el-card>
     </el-col>
   </el-row>
+  </div>
 </template>
 
 <script>
@@ -273,5 +275,8 @@
     height: 100%;
     min-height:350px;
     min-width:300px;
+  }
+  div:focus {
+    outline: none;
   }
 </style>

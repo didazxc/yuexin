@@ -1,8 +1,9 @@
 <template>
+  <div tabindex="0" @keydown.down="move(index+1)" @keydown.up="move(index-1)" style="height:100%;">
   <el-row :gutter="10">
     <el-col :sm="24" :md="12">
       <el-card shadow="hover">
-        <el-table height="500" :data="tableData" style="width: 100%" highlight-current-row @current-change="handleCurrentChange">
+        <el-table ref="table" height="500" :data="tableData" style="width: 100%" highlight-current-row @current-change="handleCurrentChange">
           <el-table-column label="#" width="60"><i slot-scope="scope">{{scope.$index}}</i></el-table-column>
           <el-table-column prop="name" label="Name"/>
           <el-table-column prop="df" label="DF"/>
@@ -17,6 +18,7 @@
       </el-card>
     </el-col>
   </el-row>
+  </div>
 </template>
 
 <script>
@@ -28,6 +30,7 @@
     data(){
       return {
         currentRow:null,
+        index:0,
         imgsrc:'',
         star:[],
         tableData:[],
@@ -41,20 +44,34 @@
         projectAPI.getPick(val.name).then(res=>{
           this.star = res.data.data;
         });
+      },
+      move(index){
+        if(index>=0 && index<this.tableData.length) {
+          this.index = index;
+          this.$refs.table.setCurrentRow(this.tableData[index]);
+        }
+      },
+      refresh(){
+        //更新tableData
+        projectAPI.pick().then(res => {
+          this.tableData.splice(0, this.tableData.length);
+          res.data.data.forEach((item, index, array) => {
+            this.tableData.push(item)
+          });
+          if(this.tableData.length){
+            this.$refs.table.setCurrentRow(this.tableData[this.index]);
+          }
+        });
       }
     },
     mounted() {
-      //更新tableData
-      projectAPI.pick().then(res => {
-        this.tableData.splice(0, this.tableData.length);
-        res.data.data.forEach((item, index, array) => {
-          this.tableData.push(item)
-        });
-      });
+      this.refresh();
     }
   }
 </script>
 
 <style scoped>
-
+  div:focus {
+    outline: none;
+  }
 </style>
