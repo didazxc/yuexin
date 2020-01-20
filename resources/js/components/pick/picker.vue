@@ -1,44 +1,50 @@
 <template>
   <div>
-    <v-stage class="stage" ref="stage" :config="configKonva" @wheel="zoom" @click="mark" @contextmenu="contextmenu">
-      <v-layer>
+    <v-stage ref="stage" class="stage" :config="configKonva" @wheel="zoom" @click="mark" @contextmenu="contextmenu">
+      <v-layer ref="layerImg">
         <v-image :config="configImage" />
       </v-layer>
-      <v-layer>
-        <v-circle v-for="s in star" :key="s._rlnCoordinateX+':'+s._rlnCoordinateY" :config="{x:Number(s._rlnCoordinateX),y:Number(s._rlnCoordinateY),radius:50,fill: '',stroke:'red',strokeWidth:2}" />
+      <v-layer ref="layerCircles">
+        <v-circle v-for="s in picks" v-if="s.AutopickFigureOfMerit>=threshold" :key="s.CoordinateX+':'+s.CoordinateY" :config="{x:Number(s.CoordinateX),y:Number(s.CoordinateY),radius:radius,fill: '',stroke:Number(s.auto)?'blue':'red',strokeWidth:2}" />
       </v-layer>
     </v-stage>
     <div class="toolbox">
-      <button @click="save"><i class="fa fa-save"/></button>
+      <div class="block">
+        <span class="demonstration">阈值</span>
+        <el-slider v-model="threshold" :max="thresholdMax" :step="0.01"/>
+      </div>
+      <div class="block">
+        <span class="demonstration">圆圈半径</span>
+        <el-input-number style="flex: none;margin-right:10px;" size="mini" v-model="radius" @change="radiusChange" :min="1" :max="100" label="圆圈半径"/>
+        <el-button @click="hide" size="mini">{{hidden?'SHOW':'HIDDEN'}}</el-button>
+        <el-button @click="applyThreshold" size="mini">APPLY THRESHOLD</el-button>
+        <el-button @click="save" size="mini">SAVE</el-button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
   export default {
-    props:['img','star'],
+    props:['img','picks'],
     data () {
       return {
         configImage:{
-          width: 400,
-          height: 400,
+          width: 800,
+          height: 500,
           image: null
         },
         configKonva: {
-          width: 400,
-          height: 400,
+          width: 800,
+          height: 500,
           draggable: true,
           scale:{x:this.zoomVal,y:this.zoomVal}
         },
-        configCircle: {
-          x: 100,
-          y: 100,
-          radius: 70,
-          fill: 'red',
-          stroke: 'black',
-          strokeWidth: 4
-        },
-        zoomVal:1
+        radius:40,
+        hidden:false,
+        zoomVal:1,
+        threshold:0,
+        thresholdMax:1
       }
     },
     created(){
@@ -49,11 +55,12 @@
       this.configImage.height = image.height;
     },
     watch:{
-      img(val,oldval){
+      img(val){
         this.configImage.image.src = val;
         this.configImage.width = this.configImage.image.width;
+        //if(this.zoomVal===1)this.zoomVal=this.configImage.height/this.configImage.image.height;
         this.configImage.height = this.configImage.image.height;
-        this.$refs.stage.getStage().draw();
+        setTimeout(()=>this.$refs.layerImg.getStage().draw(),20);
       }
     },
     methods:{
@@ -61,9 +68,9 @@
         e.evt.stopPropagation();
         e.evt.preventDefault();
         var rawZoomVal=this.zoomVal;
-        this.zoomVal+= e.evt.wheelDeltaY<0?0.1:-0.1;
+        this.zoomVal+= e.evt.wheelDeltaY<0?0.01:-0.01;
         if(this.zoomVal < 0.2){
-          this.zoomVal = 0.1;
+          this.zoomVal = 0.2;
         }else if(this.zoomVal > 5.0){
           this.zoomVal=5.0;
         }
@@ -82,58 +89,59 @@
         if(type !== "object"){
           return type;
         }
-        return Object.prototype.toString.call(obj).replace(/^\[object (\S+)\]$/, '$1');
+        return Object.prototype.toString.call(obj).replace(/^\[object (\S+)]$/, '$1');
       },
       mark(e){
         e.evt.preventDefault();
         if(e.evt.button===2 && e.target.__proto__.className==="Circle"){
-          this.star.splice(e.target.index,1);
+          this.picks.splice(e.target.index,1);
         }else if(e.evt.button===0 && e.target.__proto__.className==="Image"){
           let disx = (e.evt.offsetX - e.currentTarget.x())/this.zoomVal;
           let disy = (e.evt.offsetY - e.currentTarget.y())/this.zoomVal;
-          this.star.push({"_rlnCoordinateX":disx,"_rlnCoordinateY":disy})
+          this.picks.push({"CoordinateX":disx,"CoordinateY":disy,"auto":0,"AutopickFigureOfMerit":100})
         }
+        this.$emit("mark");
       },
       save(){
         this.$emit("save");
+      },
+      hide(){
+        var layer = this.$refs.layerCircles.getStage();
+        this.hidden=layer.visible();
+        layer.visible(!this.hidden);
+        layer.draw();
+      },
+      radiusChange(){
+        this.$refs.layerCircles.getStage().draw();
+      },
+      applyThreshold(){
+        var i=0;
+        while(i<this.picks.length){
+          if(this.picks[i].AutopickFigureOfMerit<this.threshold){this.picks.splice(i,1);}else{i++;}
+        }
+        this.$emit("mark");
       }
     },
   }
 </script>
-<style scoped lang="scss">
+<style scoped>
   .stage{
     overflow: hidden;
   }
   .toolbox{
+    margin-top:10px;
+  }
+  div.block{
     display: flex;
-    align-content: center;
-    justify-content: center;
-    color: #ccc;
-    background-color: rgba(0,0,0,0.5);
-    position: relative;
-    height:30px;
-    margin-top: -30px;
-    width:40%;
-    left: 30%;
-    border-radius: 10px;
+    align-items:center;
+    width:90%;
+    padding:0 5%;
+  }
+  .block .demonstration{
+    width:80px;
+  }
+  .block>div{
+    flex:auto;
   }
 
-  .toolbox button{
-    background-color: rgba(0,0,0,0);
-    border: none;
-    width:30px;
-
-    &:hover{
-      cursor: pointer;
-      background-color: rgba(255,255,255,0.5);
-    }
-
-    &:focus{
-      outline:none;
-    }
-
-    &:active{
-      color:white;
-    }
-  }
 </style>

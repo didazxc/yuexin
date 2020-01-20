@@ -50,11 +50,12 @@ class ProjectFile
     }
 
     static public function getStar(string $filePath){
+        $res=[];
+        if(!Storage::disk(ProjectFile::Disk)->exists($filePath)) return $res;
         $fp = fopen($filePath,"r");
         $block_step = "";
         $colNames=[];
         $colNum=0;
-        $res=[];
         while(!feof($fp)){
             $line=trim(fgets($fp));
             $arr=preg_split("/\s+/",$line);
@@ -85,7 +86,7 @@ class ProjectFile
                     if(array_key_exists($name, $point)){
                         return $point[$name];
                     }
-                    return "";
+                    return "null";
                 },$names);
                 return implode(" ", $values);
             },$json_arr);
@@ -171,7 +172,18 @@ class ProjectFile
             $files->each(function($path){
                 Storage::disk(self::Disk)->delete($path);
             });
+            return 'done';
         }
+        return 'none';
+    }
+
+    static public function convertAutoMatchStarFile($project_dir,$name){
+        $file="$project_dir/Pick/${name}.star";
+        if(Storage::disk(self::Disk)->exists($file))return 'none';
+        $star=self::getStar("$project_dir/Pick/${name}_automatch.star");
+        array_walk($star,function(&$item){$item['auto']=1;});
+        self::saveStar($file,$star);
+        return 'done';
     }
 
     /**
@@ -245,7 +257,6 @@ class ProjectFile
         Storage::disk('root')->put($path,json_encode($arr));
         return true;
     }
-
 
     /**
      * 获取参数替换后的cmds

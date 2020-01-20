@@ -14,7 +14,7 @@
     </el-col>
     <el-col :sm="24" :md="12">
       <el-card shadow="hover">
-        <picker :img="imgsrc" :star="star"/>
+        <picker :img="imgsrc" :picks="picks" @save="savePicks" @mark="mark"/>
       </el-card>
     </el-col>
   </el-row>
@@ -29,20 +29,25 @@
     components:{picker},
     data(){
       return {
-        currentRow:null,
         index:0,
         imgsrc:'',
-        star:[],
+        picks:[],
         tableData:[],
       }
     },
     methods:{
+      mark(){
+        this.tableData[this.index]["picks"]=this.picks.length;
+      },
       handleCurrentChange(val){
+        this.tableData.forEach((value,index,arr)=>{
+          if(value['name']===val['name'])this.index=index;
+        });
         projectAPI.getPng('MotionCor',val.name,'mrc').then(res=>{
           this.imgsrc = res.data.data;
         });
         projectAPI.getPick(val.name).then(res=>{
-          this.star = res.data.data;
+          this.picks = res.data.data;
         });
       },
       move(index){
@@ -61,6 +66,11 @@
           if(this.tableData.length){
             this.$refs.table.setCurrentRow(this.tableData[this.index]);
           }
+        });
+      },
+      savePicks(){
+        projectAPI.setPick(this.tableData[this.index]["name"],this.picks).then(res=>{
+          this.$message({type:'success',message:'标记成功'});
         });
       }
     },

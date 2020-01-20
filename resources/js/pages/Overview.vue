@@ -44,7 +44,7 @@
           <el-button @click="openConfForm('Pick')">Pick</el-button>
           </el-checkbox>
         </template>
-        <el-tag type="primary" disable-transitions>1000</el-tag>
+        <el-tag slot-scope="scope" type="primary" disable-transitions>{{scope.row['Pick']}}</el-tag>
       </el-table-column>
       <el-table-column>
         <template slot="header">

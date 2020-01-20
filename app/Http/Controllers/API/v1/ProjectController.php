@@ -2,14 +2,10 @@
 namespace App\Http\Controllers\API\v1;
 
 use App\Http\Controllers\API\Controller;
-use App\Http\Services\Image;
 use App\Http\Services\Module;
 use App\Http\Services\ProjectFile;
 use App\Http\Services\Task;
-use App\Jobs\ProjectShell;
-use App\Jobs\Shell;
 use App\Models\Project;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -57,20 +53,27 @@ class ProjectController extends Controller
         $files = ProjectFile::imgFiles($project_dir,'Movies');
         //读取movies模块时，转换图片
         $files->each(function($it)use($project_dir){
+
             Task::run($project_dir,['Movies'],$it['name']);
         });
-        //整合MotionCor和CTF模块
+        //整合MotionCor、CTF模块和star文件
         $statusMotionCor=Task::getTaskStatusForView($project_dir,'MotionCor')->pluck('status','name');
         $statusCTF=Task::getTaskStatusForView($project_dir,'CTF')->pluck('status','name');
-        $res=$files->map(function($it)use($project_dir,$statusMotionCor,$statusCTF){
+
+        $picks=[];
+        foreach(ProjectFile::getStar("$project_dir/CTF/ctf.star") as $pick){
+            $picks[$pick['name']]=$pick;
+        }
+
+        $res=$files->map(function($it)use($project_dir,$statusMotionCor,$statusCTF,$picks){
             $name=$it['name'];
             $item=[];
             $item['name']=$name;
             $item['Movies']=ProjectFile::existPng($project_dir,'Movies',$name,'mrc');
             $item['MotionCor']=$statusMotionCor->get($name);//ProjectFile::existPng($project_dir,'MotionCor',$name,'mrc');
             $item['CTF']=$statusCTF->get($name);//ProjectFile::existPng($project_dir,'CTF',$name,'ctf');
-            $item['Mark']='good';
-            $item['Pick']=1000;
+            $item['Mark']=array_key_exists($name,$picks)?$picks[$name]['mark']:'good';
+            $item['Pick']=array_key_exists($name,$picks)?$picks[$name]['picks']:0;
             $item['Extract']=$statusCTF->get($name);
             return $item;
         })->values()->toArray();
@@ -150,6 +153,16 @@ class ProjectController extends Controller
         $request->validate(['projectDir'=>'required']);
         $project_dir=$request->input('projectDir');
         $star = ProjectFile::getStar("$project_dir/CTF/ctf.star");
+        $needFreshStar=false;
+        array_walk($star,function(&$item)use($project_dir,&$needFreshStar){
+            if($item['picks']==0){
+                $name=$item['name'];
+                ProjectFile::convertAutoMatchStarFile($project_dir,$name);
+                $item['picks']=count(ProjectFile::getStar("$project_dir/Pick/$name.star"));
+                if($item['picks']>0)$needFreshStar=true;
+            }
+        });
+        if($needFreshStar)ProjectFile::saveStar("$project_dir/CTF/ctf.star",$star);
         return $this->response($star);
     }
 
@@ -157,7 +170,7 @@ class ProjectController extends Controller
         $request->validate(['projectDir'=>'required','name'=>'required']);
         $project_dir=$request->input('projectDir');
         $name=$request->input("name");
-        $res = ProjectFile::getStar($project_dir.'/Pick/'.$name.'_automatch.star');
+        $res = ProjectFile::getStar("$project_dir/Pick/$name.star");
         return $this->response($res);
     }
 
@@ -166,7 +179,17 @@ class ProjectController extends Controller
         $project_dir=$request->input('projectDir');
         $name=$request->input("name");
         $arr=$request->input("arr");
-        ProjectFile::saveStar($project_dir.'/Pick/'.$name.'.star',$arr);
+        ProjectFile::saveStar("$project_dir/Pick/$name.star",$arr);
+        $needFreshStar=false;
+        $picks=count($arr);
+        $star = ProjectFile::getStar("$project_dir/CTF/ctf.star");
+        array_walk($star,function(&$item)use($name,$picks,&$needFreshStar){
+            if($item['name']==$name and $item['picks']!=$picks){
+                $item['picks']=$picks;
+                $needFreshStar=true;
+            }
+        });
+        if($needFreshStar)ProjectFile::saveStar("$project_dir/CTF/ctf.star",$star);
         return $this->response('done');
     }
 
