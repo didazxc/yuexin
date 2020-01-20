@@ -38,17 +38,21 @@ export default {
   preprocess(){
     var projectDir=store.getters.getProject.directory;
     return axios.get(CONFIG.API_URL+'/project/preprocess',{params:{projectDir:projectDir}});
-    },
+  },
+  setMark(marks){
+    var projectDir=store.getters.getProject.directory;
+    return axios.post(CONFIG.API_URL+'/project/preprocess/mark',{projectDir:projectDir,marks:marks});
+  },
 
   pick(){
     var projectDir=store.getters.getProject.directory;
     return axios.get(CONFIG.API_URL+'/project/pick',{params:{projectDir:projectDir}});
   },
-  getMark(name){
+  getPick(name){
     var projectDir=store.getters.getProject.directory;
     return axios.get(CONFIG.API_URL+'/project/pick/mark',{params:{projectDir:projectDir,name:name}});
   },
-  setMark(name,arr){
+  setPick(name,arr){
     var projectDir=store.getters.getProject.directory;
     return axios.post(CONFIG.API_URL+'/project/pick/mark',{projectDir:projectDir,name:name,arr:arr});
   },

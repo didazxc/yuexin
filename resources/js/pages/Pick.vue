@@ -38,7 +38,7 @@
         projectAPI.getPng('MotionCor',val.name,'mrc').then(res=>{
           this.imgsrc = res.data.data;
         });
-        projectAPI.getMark(val.name).then(res=>{
+        projectAPI.getPick(val.name).then(res=>{
           this.star = res.data.data;
         });
       }

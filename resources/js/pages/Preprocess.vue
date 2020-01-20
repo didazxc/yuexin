@@ -9,12 +9,13 @@
           <el-table-column prop="fit" label="CTF fit"/>
           <el-table-column prop="astig" label="Astig"/>
           <el-table-column label="mark">
-            <el-tag slot-scope="scope" disable-transitions :type="scope.row.mark === 'good' ? 'success' : 'info'">{{scope.row.mark}}</el-tag>
+            <el-button slot-scope="scope" size="mini" @click="mark(scope.row.mark === 'good'?'bad':'good')" :type="scope.row.mark === 'good' ? 'success' : 'info'" round plain>{{scope.row.mark}}</el-button>
           </el-table-column>
         </el-table>
         <div class="tool-box">
-          <el-button type="success" size="small" @click="mark('good')">MARK AS GOOD</el-button>
-          <el-button type="danger" size="small" @click="mark('bad')">MARK AS BAD</el-button>
+          <el-button type="success" size="small" @click="refresh">REFRESH</el-button>
+          <el-button type="primary" size="small" @click="submitMark">SUBMIT MARK</el-button>
+          <el-button type="warning" size="small" @click="markThreshold">APPLY THRESHOLD</el-button>
         </div>
       </el-card>
     </el-col>
@@ -60,22 +61,33 @@
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="统计">
-            <v-chart :options="options" :autoresize="true"/>
+            <v-chart ref="echarts" :options="options" :autoresize="true"/>
+            <div class="block">
+              <span class="demonstration">Y轴</span>
+              <el-select v-model="currentY" placeholder="请选择">
+                <el-option
+                    v-for="item in ['df','fit','astig','shift']"
+                    :key="item"
+                    :label="item"
+                    :value="item">
+                </el-option>
+              </el-select>
+            </div>
             <div class="block">
               <span class="demonstration">DF</span>
-              <el-slider v-model="thresholds.df" :max="30000"/>
+              <el-slider v-model="thresholds.df" :max="thresholdsMax.df"/>
             </div>
             <div class="block">
               <span class="demonstration">Fit</span>
-              <el-slider v-model="thresholds.fit" :max="20"/>
+              <el-slider v-model="thresholds.fit" :max="thresholdsMax.fit"/>
             </div>
             <div class="block">
               <span class="demonstration">Astig</span>
-              <el-slider v-model="thresholds.astig" :max="2000"/>
+              <el-slider v-model="thresholds.astig" :max="thresholdsMax.astig"/>
             </div>
             <div class="block">
               <span class="demonstration">Shift</span>
-              <el-slider v-model="thresholds.shift" :max="10"/>
+              <el-slider v-model="thresholds.shift" :max="thresholdsMax.shift"/>
             </div>
           </el-tab-pane>
         </el-tabs>
@@ -92,39 +104,73 @@
     name: "Preprocess",
     components:{mrcImg},
     data(){
+      var thresholdsMax={
+        df:30000,
+        fit:20,
+        astig:2000,
+        shift:10
+      };
       return {
         currentRow:null,
         index:0,
         tableData:[],
         src:{'Movies':'','trace':'','MotionCor':'','CTF':''},
-        options:{
-          xAxis: {},
-          yAxis: {},
-          series: [{
-            symbolSize: 20,
-            data: [
-              [10.0, 8.04],
-              [8.0, 6.95],
-              [13.0, 7.58],
-              [9.0, 8.81],
-              [11.0, 8.33],
-              [14.0, 9.96],
-              [6.0, 7.24],
-              [4.0, 4.26],
-              [12.0, 10.84],
-              [7.0, 4.82],
-              [5.0, 5.68]
-            ],
-            type: 'scatter'
-          }]
-        },
+        currentY:'df',
         thresholds:{
           df:0,
           fit:0,
           astig:0,
           shift:0
         },
+        thresholdsMax:thresholdsMax,
+        options:{
+          xAxis: {},
+          yAxis: {},
+          visualMap:[
+            {show:false,dimension:2,max:thresholdsMax.df,calculable:true,precision:0.1,inRange:{symbolSize: [10, 10]},outOfRange:{symbolSize: [10, 10],color:['rgba(0,0,0,.2)']}},
+            {show:false,dimension:3,max:thresholdsMax.fit,calculable:true,precision:0.1,inRange:{symbolSize: [10, 10]},outOfRange:{symbolSize: [10, 10],color:['rgba(0,0,0,.2)']}},
+            {show:false,dimension:4,max:thresholdsMax.astig,calculable:true,precision:0.1,inRange:{symbolSize: [10, 10]},outOfRange:{symbolSize: [10, 10],color:['rgba(0,0,0,.2)']}},
+            {show:false,dimension:5,max:thresholdsMax.shift,calculable:true,precision:0.1,inRange:{symbolSize: [10, 10]},outOfRange:{symbolSize: [10, 10],color:['rgba(0,0,0,.2)']}}
+          ],
+          series: [{
+            type: 'scatter',
+            data: []
+          }]
+        }
       }
+    },
+    watch:{
+      currentY(val){
+        this.refreshEChartsData();
+      },
+      'thresholds.df'(val){
+        this.$refs.echarts.dispatchAction({
+          type:'selectDataRange',
+          visualMapIndex:0,
+          selected:[val,this.thresholdsMax.df]
+        });
+      },
+      'thresholds.fit'(val){
+        this.$refs.echarts.dispatchAction({
+          type:'selectDataRange',
+          visualMapIndex:1,
+          selected:[val,this.thresholdsMax.fit]
+        });
+      },
+      'thresholds.astig'(val){
+        this.$refs.echarts.dispatchAction({
+          type:'selectDataRange',
+          visualMapIndex:2,
+          selected:[val,this.thresholdsMax.astig]
+        });
+      },
+      'thresholds.shift'(val){
+        this.$refs.echarts.dispatchAction({
+          type:'selectDataRange',
+          visualMapIndex:3,
+          selected:[val,this.thresholdsMax.shift]
+        });
+      },
     },
     methods:{
       handleCurrentChange(val){
@@ -144,7 +190,6 @@
         projectAPI.getPng('CTF',val.name,'ctf').then(res=>{this.src['CTF']=res.data.data;});
       },
       mark(val){
-        //todo 提交
         this.currentRow.mark=val;
       },
       move(index){
@@ -152,19 +197,53 @@
           this.index = index;
           this.$refs.table.setCurrentRow(this.tableData[index]);
         }
+      },
+      refreshEChartsData(){
+        this.options.series[0].data.splice(0, this.options.series[0].data.length);
+        this.tableData.forEach((item, index, array) => {
+          this.options.series[0].data.push([index,item[this.currentY],item['df'],item['fit'],item['astig'],item['shift']]);
+        });
+      },
+      markThreshold(){
+        this.tableData.forEach((item, index, array) => {
+          if(item['df']<this.thresholds.df ||
+            item['fit']<this.thresholds.fit ||
+            item['astig']<this.thresholds.astig ||
+            item['shift']<this.thresholds.shift){
+            item.mark='bad';
+          }else{
+            item.mark='good';
+          }
+        });
+      },
+      refresh(){
+        //更新tableData
+        projectAPI.preprocess().then(res => {
+          this.tableData.splice(0, this.tableData.length);
+          res.data.data.forEach((item, index, array) => {
+            item['df']=parseFloat(item['df']);
+            item['fit']=parseFloat(item['fit']);
+            item['astig']=parseFloat(item['astig']);
+            item['shift']=parseFloat(item['shift']);
+            this.tableData.push(item);
+          });
+          this.refreshEChartsData();
+          if(this.tableData.length){
+            this.$refs.table.setCurrentRow(this.tableData[this.index]);
+          }
+        });
+      },
+      submitMark(){
+        projectAPI.setMark(this.tableData).then(res=>{
+          this.$message({
+            type: 'success',
+            message: '提交Mark成功'
+          });
+        });
       }
     },
     mounted() {
-      //更新tableData
-      projectAPI.preprocess().then(res => {
-        this.tableData.splice(0, this.tableData.length);
-        res.data.data.forEach((item, index, array) => {
-          this.tableData.push(item)
-        });
-        if(this.tableData.length){
-          this.$refs.table.setCurrentRow(this.tableData[this.index]);
-        }
-      });
+      this.refresh();
     }
   }
 </script>
@@ -180,8 +259,8 @@
   div.block{
     display: flex;
     align-items:center;
-    width:96%;
-    padding:0 2%;
+    width:90%;
+    padding:0 5%;
   }
   .block .demonstration{
     width:60px;

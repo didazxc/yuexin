@@ -152,7 +152,7 @@
       test(){
         if(this.files.length>0){
           this.testLoading=true;
-          var names=this.files.slice(0,5).map(f=>f['name']);
+          var names=this.files.slice(0,20).map(f=>f['name']);
           projectAPI.test(this.modules,names).then(res=>{
             this.testLoading=false;
           }).catch(res=>{

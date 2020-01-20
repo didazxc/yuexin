@@ -132,6 +132,20 @@ class ProjectController extends Controller
         return $this->response($star);
     }
 
+    public function setMark(Request $request){
+        $request->validate(['projectDir'=>'required','marks'=>'required']);
+        $project_dir=$request->input('projectDir');
+        $marks=$request->input('marks');
+        $marks=collect($marks)->pluck('mark','name')->toArray();
+        $star_file="$project_dir/CTF/ctf.star";
+        $star = ProjectFile::getStar($star_file);
+        array_walk($star,function(&$item)use($marks){
+            if(array_key_exists($item['name'],$marks)) $item['mark']=$marks[$item['name']];
+            });
+        ProjectFile::saveStar($star_file,$star);
+        return $this->response('done');
+    }
+
     public function pick(Request $request){
         $request->validate(['projectDir'=>'required']);
         $project_dir=$request->input('projectDir');

@@ -30,9 +30,10 @@ Route::group(['prefix'=>'v1','middleware'=>'auth:api','namespace'=>'\App\Http\Co
         Route::post('/test', 'ProjectController@runTest');
 
         Route::get('/preprocess', 'ProjectController@preprocess');
+        Route::post('/preprocess/mark', 'ProjectController@setMark');
         Route::get('/pick', 'ProjectController@pick');
-        Route::get('/pick/mark', 'ProjectController@getMark');
-        Route::post('/pick/mark', 'ProjectController@setMark');
+        Route::get('/pick/mark', 'ProjectController@getPick');
+        Route::post('/pick/mark', 'ProjectController@setPick');
     });
 
 });
