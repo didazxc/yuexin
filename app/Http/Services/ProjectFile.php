@@ -43,19 +43,12 @@ class ProjectFile
         return 'data:image/png;charset=utf-8;base64,'.base64_encode($image_data);
     }
 
-    static public function laterPng($project_dir,$module,$name,$ext){
-        $filePath = "$project_dir/$module/$name.$ext";
+    static public function laterPng($filePath){
         $path="$filePath.png";
         $disk=Storage::disk(self::Disk);
         $time_png=$disk->exists($path)?$disk->lastModified($path):0;
-        $time_file=Storage::disk(self::Disk)->lastModified($filePath);
+        $time_file=$disk->exists($filePath)?$disk->lastModified($filePath):-1;
         return $time_file>=$time_png;
-    }
-
-    static public function existPng($project_dir,$module,$name,$ext){
-        $filePath = "$project_dir/$module/$name.$ext";
-        $path="$filePath.png";
-        return Storage::disk(self::Disk)->exists($path);
     }
 
     static public function getStar(string $filePath){
@@ -157,31 +150,35 @@ class ProjectFile
         });
         if($files->count()){
             $save_path=$project_dir.'/CTF/ctf.star';
-            $stars=$files->map(function($path)use($project_dir){
-                $name=pathinfo($path,PATHINFO_FILENAME);
-                $name=substr($name,0,strrpos($name,'_'));
-                $star=self::getStar('/'.$path)[0];
-                $u=floatval($star['DefocusU']);
-                $v=floatval($star['DefocusV']);
+            try {
+                $stars=$files->map(function($path)use($project_dir){
+                    $name=pathinfo($path,PATHINFO_FILENAME);
+                    $name=substr($name,0,strrpos($name,'_'));
+                    $star=self::getStar('/'.$path)[0];
+                    $u=floatval($star['DefocusU']);
+                    $v=floatval($star['DefocusV']);
 
-                $item=[];
-                $item['name']=$name;
-                $item['df']=($u+$v)/2;
-                $item['astig']=abs($u-$v);
-                $item['shift']=self::getMotionShiftFromAln("$project_dir/MotionCor/$name.aln");
-                $item['fit']=floatval($star['FinalResolution']);
-                $item['mark']='good';
-                $item['picks']=0;
-                return $item;
-            })->values()->toArray();
-            if(Storage::disk(self::Disk)->exists($save_path)){
-                $stars=array_merge(self::getStar($save_path),$stars);
+                    $item=[];
+                    $item['name']=$name;
+                    $item['df']=($u+$v)/2;
+                    $item['astig']=abs($u-$v);
+                    $item['shift']=self::getMotionShiftFromAln("$project_dir/MotionCor/$name.aln");
+                    $item['fit']=floatval($star['FinalResolution']);
+                    $item['mark']='good';
+                    $item['picks']=0;
+                    return $item;
+                })->values()->toArray();
+                if(Storage::disk(self::Disk)->exists($save_path)){
+                    $stars=array_merge(self::getStar($save_path),$stars);
+                }
+                self::saveStar($save_path,$stars);
+                $files->each(function($path){
+                    Storage::disk(self::Disk)->delete($path);
+                });
+                return 'done';
+            }catch (\Exception $e){
+                return $e->getMessage();
             }
-            self::saveStar($save_path,$stars);
-            $files->each(function($path){
-                Storage::disk(self::Disk)->delete($path);
-            });
-            return 'done';
         }
         return 'none';
     }
@@ -193,6 +190,21 @@ class ProjectFile
         array_walk($star,function(&$item){$item['auto']=1;});
         self::saveStar($file,$star);
         return 'done';
+    }
+
+    static public function updateStarWithPicks($project_dir){
+        $star = ProjectFile::getStar("$project_dir/CTF/ctf.star");
+        $needFreshCTFStar=false;
+        array_walk($star,function(&$item)use($project_dir,&$needFreshCTFStar){
+            if($item['picks']==0){
+                $name=$item['name'];
+                ProjectFile::convertAutoMatchStarFile($project_dir,$name);
+                $item['picks']=count(ProjectFile::getStar("$project_dir/Pick/$name.star"));
+                if($item['picks']>0)$needFreshCTFStar=true;
+            }
+        });
+        if($needFreshCTFStar)ProjectFile::saveStar("$project_dir/CTF/ctf.star",$star);
+        return $star;
     }
 
     /**

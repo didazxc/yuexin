@@ -51,20 +51,26 @@ class ProjectController extends Controller
         $request->validate(['projectDir'=>'required']);
         $project_dir=$request->input('projectDir');
         $files = ProjectFile::imgFiles($project_dir,'Movies');
-        //读取movies模块时，转换图片，每个任务将只运行一次
+        //运行任务
         $files->each(function($it)use($project_dir){
+            //读取movies模块时，转换图片，每个任务将只运行一次
             Task::run($project_dir,['Movies'],$it['name']);
             //重新执行条件:star.png不存在或创建时间早于star文件
-            $rerun=ProjectFile::laterPng($project_dir,'Pick',$it['name'],'star');
+            $starFilePath = "$project_dir/Pick/${it['name']}.star";
+            $rerun=ProjectFile::laterPng($starFilePath);
             if($rerun)Task::run($project_dir,['Extract'],$it['name'],$rerun);
         });
+        //统一CTF中的star文件
+        ProjectFile::combineCTFStarFiles($project_dir);
+        //整理Pick中的star文件
+        $star=ProjectFile::updateStarWithPicks($project_dir);
         //整合MotionCor,CTF,Extract和star文件
         $statusMovies=Task::getTaskStatusForView($project_dir,'Movies')->pluck('status','name');
         $statusMotionCor=Task::getTaskStatusForView($project_dir,'MotionCor')->pluck('status','name');
         $statusCTF=Task::getTaskStatusForView($project_dir,'CTF')->pluck('status','name');
         $statusExtract=Task::getTaskStatusForView($project_dir,'Extract')->pluck('status','name');
         $picks=[];
-        foreach(ProjectFile::getStar("$project_dir/CTF/ctf.star") as $pick){
+        foreach($star as $pick){
             $picks[$pick['name']]=$pick;
         }
         $res=$files->map(function($it)use($project_dir,$statusMovies,$statusMotionCor,$statusCTF,$statusExtract,$picks){
@@ -115,7 +121,7 @@ class ProjectController extends Controller
             return $this->response('failed',503,'modules should been in order');
         }
         //执行命令
-        ProjectFile::clear($project_dir,$modules);
+        //ProjectFile::clear($project_dir,$modules);
         foreach($names as $name){
             Task::run($project_dir,$modules,$name);
         }
@@ -154,17 +160,7 @@ class ProjectController extends Controller
     public function pick(Request $request){
         $request->validate(['projectDir'=>'required']);
         $project_dir=$request->input('projectDir');
-        $star = ProjectFile::getStar("$project_dir/CTF/ctf.star");
-        $needFreshStar=false;
-        array_walk($star,function(&$item)use($project_dir,&$needFreshStar){
-            if($item['picks']==0){
-                $name=$item['name'];
-                ProjectFile::convertAutoMatchStarFile($project_dir,$name);
-                $item['picks']=count(ProjectFile::getStar("$project_dir/Pick/$name.star"));
-                if($item['picks']>0)$needFreshStar=true;
-            }
-        });
-        if($needFreshStar)ProjectFile::saveStar("$project_dir/CTF/ctf.star",$star);
+        $star=ProjectFile::updateStarWithPicks($project_dir);
         return $this->response($star);
     }
 
@@ -182,6 +178,7 @@ class ProjectController extends Controller
         $name=$request->input("name");
         $arr=$request->input("arr");
         ProjectFile::saveStar("$project_dir/Pick/$name.star",$arr);
+        //更新star文件
         $needFreshStar=false;
         $picks=count($arr);
         $star = ProjectFile::getStar("$project_dir/CTF/ctf.star");
@@ -192,6 +189,7 @@ class ProjectController extends Controller
             }
         });
         if($needFreshStar)ProjectFile::saveStar("$project_dir/CTF/ctf.star",$star);
+        //----------
         return $this->response('done');
     }
 
