@@ -53,6 +53,7 @@ export default new Vuex.Store({
     setProject(state,form){
       state.project=form;
       localStorage.project=JSON.stringify(state.project);
+      state.config=null;
     },
     setConfig(state,config){
       state.config = config;
@@ -102,7 +103,7 @@ export default new Vuex.Store({
     setConfig(context,conf){
       var dir = context.getters.getProject.directory;
       if(dir!==undefined) {
-        return ProjectApi.setConf(dir, conf);
+        return ProjectApi.setConf(conf);
       }else{
         throw Exception("have not a project directory");
       }

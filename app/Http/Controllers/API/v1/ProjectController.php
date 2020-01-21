@@ -21,7 +21,7 @@ class ProjectController extends Controller
             'ssd_directory'=>$project_dir,
             'args'=>$form['map'],
         ]);
-        $raw_root=$request->input('importProjectDir','');
+        $raw_root=$form['importProjectDir'];
         ProjectFile::initConf($project_dir,$raw_root);
         return $this->response($project);
     }

@@ -49,6 +49,13 @@
         <el-form-item label="Box Size">
           <el-input v-model="form.map.boxsize"/>
         </el-form-item>
+        <el-form-item label="导入配置">
+          <el-select v-model="form.importProjectDir" clearable placeholder="将使用默认配置">
+            <el-option
+                v-for="project in allProjects" :key="project.id" :label="project.name" :value="project.directory">
+            </el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="formShow = false">取 消</el-button>
@@ -65,6 +72,7 @@
     name: "ProjectSelect",
     data() {
       return {
+        timer:null,
         loading:false,
         activeName: '1',
         activeUser:{},
@@ -79,7 +87,8 @@
             dose:'',
             diameter:'',
             boxsize:''
-          }
+          },
+          importProjectDir:''
         },
         formShow: false
       }
@@ -90,6 +99,9 @@
       },
       users() {
         return this.$store.getters.getUsers;
+      },
+      allProjects(){
+        return Object.values(this.users).reduce((sum,item)=>sum.concat(item.projects),[]);
       }
     },
     methods: {
@@ -114,12 +126,19 @@
       selectProject(project){
         this.$store.commit('setProject',project);
         this.$router.push({path:'/overview'});
+      },
+      refreshUsers(){
+        this.$store.dispatch('refreshUsers').then(res=>{
+          this.activeUser = this.users[this.logUser.id];
+        });
       }
     },
     created() {
-      this.$store.dispatch('refreshUsers').then(res=>{
-        this.activeUser = this.users[this.logUser.id];
-      });
+      this.refreshUsers();
+      this.timer=setInterval(this.refreshUsers,20000);
+    },
+    beforeDestroy() {
+      clearInterval(this.timer);
     }
   }
 </script>

@@ -7,6 +7,7 @@
           <el-dropdown :hide-on-click="false" @command="handleCommand">
             <el-avatar> {{userName}}</el-avatar>
             <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item icon="el-icon-folder" command="page2ProjectSelect">切换项目</el-dropdown-item>
               <el-dropdown-item icon="el-icon-switch-button" command="logout">登出</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -49,6 +50,9 @@
         switch(cmd){
           case 'logout':
             this.$store.dispatch('logout');
+            break;
+          case 'page2ProjectSelect':
+            this.$router.push({path:'/set_project'});
             break;
         }
       },
