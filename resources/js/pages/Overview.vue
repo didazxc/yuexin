@@ -50,7 +50,7 @@
         <template slot="header">
           Extract R
         </template>
-        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" :status="scope.row['Extract']" ext="ctf" module="CTF"/>
+        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" :status="scope.row['Extract']" ext="star" module="Pick"/>
         <span v-else>{{scope.row['Extract']}}</span>
       </el-table-column>
     </el-table>

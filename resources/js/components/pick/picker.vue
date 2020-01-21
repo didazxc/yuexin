@@ -16,9 +16,9 @@
       <div class="block">
         <span class="demonstration">圆圈半径</span>
         <el-input-number style="flex: none;margin-right:10px;" size="mini" v-model="radius" @change="radiusChange" :min="1" :max="100" label="圆圈半径"/>
-        <el-button @click="hide" size="mini">{{hidden?'SHOW':'HIDDEN'}}</el-button>
-        <el-button @click="applyThreshold" size="mini">APPLY THRESHOLD</el-button>
-        <el-button @click="save" size="mini">SAVE</el-button>
+        <el-button @click="hide" type="primary" size="mini">{{hidden?'SHOW':'HIDDEN'}}</el-button>
+        <el-button @click="applyThreshold" type="warning" size="mini">APPLY THRESHOLD</el-button>
+        <el-button @click="save" type="success" size="mini">SAVE</el-button>
       </div>
     </div>
   </div>
@@ -44,7 +44,7 @@
         hidden:false,
         zoomVal:1,
         threshold:0,
-        thresholdMax:1
+        thresholdMax:2
       }
     },
     created(){

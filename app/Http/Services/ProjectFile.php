@@ -43,6 +43,15 @@ class ProjectFile
         return 'data:image/png;charset=utf-8;base64,'.base64_encode($image_data);
     }
 
+    static public function laterPng($project_dir,$module,$name,$ext){
+        $filePath = "$project_dir/$module/$name.$ext";
+        $path="$filePath.png";
+        $disk=Storage::disk(self::Disk);
+        $time_png=$disk->exists($path)?$disk->lastModified($path):0;
+        $time_file=Storage::disk(self::Disk)->lastModified($filePath);
+        return $time_file>=$time_png;
+    }
+
     static public function existPng($project_dir,$module,$name,$ext){
         $filePath = "$project_dir/$module/$name.$ext";
         $path="$filePath.png";

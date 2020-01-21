@@ -75,20 +75,21 @@ class Task
     }
 
     /**
-     * 执行任务，只针对未执行过的movie
-     * @param $project_dir
-     * @param $modules
-     * @param $name
+     * 执行任务，默认只针对未执行过的movie
+     * @param $project_dir string 项目目录
+     * @param $modules array 模块
+     * @param $name string mrc图片名称
+     * @param $rerun bool 是否重新执行
      * @return string
      */
-    static public function run($project_dir,array $modules,$name){
+    static public function run(string $project_dir,array $modules,string $name,bool $rerun=false){
         //获取命令
         $cmds=[];
         try {
             foreach($modules as $mod){
                 $cmd = ProjectFile::getCmd($project_dir,$mod,$name);
                 $status=self::getSingleTaskStatus($project_dir,$mod,$name);
-                if($status==Task::NONE){
+                if($status==Task::NONE || $rerun){
                     $cmds[] = new ProjectShell($project_dir,$modules,$mod,$name,$cmd);
                 }
             }

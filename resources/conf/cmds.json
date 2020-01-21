@@ -124,5 +124,10 @@
         {"name":"","title":"输入文件","type":"string","value": "Pick/$name.mrc"}
       ]
     }
+  },
+  "Extract": {
+    "default":{
+      "cmd": "python3 $app_dir/extract.py MotionCor/$name.mrc Pick/$name.star"
+    }
   }
 }

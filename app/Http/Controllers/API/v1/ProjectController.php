@@ -51,30 +51,32 @@ class ProjectController extends Controller
         $request->validate(['projectDir'=>'required']);
         $project_dir=$request->input('projectDir');
         $files = ProjectFile::imgFiles($project_dir,'Movies');
-        //读取movies模块时，转换图片
+        //读取movies模块时，转换图片，每个任务将只运行一次
         $files->each(function($it)use($project_dir){
-
             Task::run($project_dir,['Movies'],$it['name']);
+            //重新执行条件:star.png不存在或创建时间早于star文件
+            $rerun=ProjectFile::laterPng($project_dir,'Pick',$it['name'],'star');
+            if($rerun)Task::run($project_dir,['Extract'],$it['name'],$rerun);
         });
-        //整合MotionCor、CTF模块和star文件
+        //整合MotionCor,CTF,Extract和star文件
+        $statusMovies=Task::getTaskStatusForView($project_dir,'Movies')->pluck('status','name');
         $statusMotionCor=Task::getTaskStatusForView($project_dir,'MotionCor')->pluck('status','name');
         $statusCTF=Task::getTaskStatusForView($project_dir,'CTF')->pluck('status','name');
-
+        $statusExtract=Task::getTaskStatusForView($project_dir,'Extract')->pluck('status','name');
         $picks=[];
         foreach(ProjectFile::getStar("$project_dir/CTF/ctf.star") as $pick){
             $picks[$pick['name']]=$pick;
         }
-
-        $res=$files->map(function($it)use($project_dir,$statusMotionCor,$statusCTF,$picks){
+        $res=$files->map(function($it)use($project_dir,$statusMovies,$statusMotionCor,$statusCTF,$statusExtract,$picks){
             $name=$it['name'];
             $item=[];
             $item['name']=$name;
-            $item['Movies']=ProjectFile::existPng($project_dir,'Movies',$name,'mrc');
+            $item['Movies']=$statusMovies->get($name);//ProjectFile::existPng($project_dir,'Movies',$name,'mrc');
             $item['MotionCor']=$statusMotionCor->get($name);//ProjectFile::existPng($project_dir,'MotionCor',$name,'mrc');
             $item['CTF']=$statusCTF->get($name);//ProjectFile::existPng($project_dir,'CTF',$name,'ctf');
             $item['Mark']=array_key_exists($name,$picks)?$picks[$name]['mark']:'good';
             $item['Pick']=array_key_exists($name,$picks)?$picks[$name]['picks']:0;
-            $item['Extract']=$statusCTF->get($name);
+            $item['Extract']=$statusExtract->get($name,'未开始');
             return $item;
         })->values()->toArray();
         return $this->response($res);
