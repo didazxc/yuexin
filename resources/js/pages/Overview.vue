@@ -6,7 +6,7 @@
         <template slot="header">
           Movie
         </template>
-        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" :status="scope.row['Movies']?'加载中...':scope.row.name" module="Movies"/>
+        <imgInTableCell slot-scope="scope" v-if="scope.$index<5" :name="scope.row.name" :status="scope.row['Movies']===null?'加载中...':scope.row['Movies']" module="Movies"/>
         <span v-else>{{scope.row.name}}</span>
       </el-table-column>
       <el-table-column>
