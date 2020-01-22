@@ -101,7 +101,13 @@
         return this.$store.getters.getUsers;
       },
       allProjects(){
-        return Object.values(this.users).reduce((sum,item)=>sum.concat(item.projects),[]);
+        var res=[];
+        for(var id in this.users){
+          if(this.users.hasOwnProperty(id)){
+            res=res.concat(this.users[id].projects)
+          }
+        }
+        return res;
       }
     },
     methods: {
